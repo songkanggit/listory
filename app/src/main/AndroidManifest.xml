@@ -21,16 +21,19 @@
             android:name="com.listory.songkang.activity.MusicPlayerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_music_player"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
         <activity
             android:name="com.listory.songkang.activity.FullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
         <activity
             android:name="com.listory.songkang.activity.AlbumActivity"
             android:label="@string/title_activity_album"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme" />
+        <activity android:name="com.listory.songkang.activity.TestActivity">
+
+        </activity>
     </application>
 
 </manifest>

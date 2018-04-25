@@ -1,91 +1,47 @@
 package com.listory.songkang.activity;
 
-import android.content.Intent;
-import android.support.annotation.LayoutRes;
-import android.os.Bundle;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.view.MenuItem;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.listory.songkang.listory.R;
 import com.listory.songkang.transformer.ScaleInTransformer;
-import com.listory.songkang.view.AvatarCircleView;
 
-
-public class MainActivity extends BaseActivity implements View.OnClickListener {
-
-    private DrawerLayout mDrawerLayout;
-    private int[] imgRes = {R.mipmap.will_youth, R.mipmap.mr_black, R.mipmap.will_youth, R.mipmap.mr_black,
-            R.mipmap.will_youth, R.mipmap.mr_black};
+public class TestActivity extends AppCompatActivity {
+    private int[] imgRes = {R.mipmap.view_page_01, R.mipmap.view_page_02, R.mipmap.view_page_03, R.mipmap.view_page_01,
+            R.mipmap.view_page_02, R.mipmap.view_page_03};
     private PagerAdapter mAdapter;
     private ViewPager mViewPager;
-    private AvatarCircleView mCircleView;
 
-    protected void parseNonNullBundle(Bundle bundle){
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_test);
 
-    }
-    protected void initDataIgnoreUi() {
-
-    }
-    @LayoutRes
-    protected int getLayoutResourceId() { return R.layout.activity_main;}
-    protected void viewAffairs(){
-        mViewPager = fvb(R.id.id_viewpager);
-        mDrawerLayout = fvb(R.id.contentPanel);
-        mCircleView = fvb(R.id.circle_view);
-    }
-    protected void assembleViewClickAffairs(){
-        mCircleView.setOnClickListener(this);
-    }
-    protected void initDataAfterUiAffairs(){
+        mViewPager = findViewById( R.id.viewPager);
         mViewPager.setPageMargin(20);
         mViewPager.setOffscreenPageLimit(3);
         mViewPager.setAdapter(mAdapter = new HomePageAdapter());
         mViewPager.setPageTransformer(true, new ScaleInTransformer());
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                mDrawerLayout.openDrawer(GravityCompat.START);
-                break;
-        }
-        return true;
-    }
-
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.circle_view:
-                startMusicPlayer();
-                break;
-        }
-    }
-
-    private void startMusicPlayer() {
-        Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
-        startActivity(intent);
-    }
-
     private class HomePageAdapter extends PagerAdapter {
         @Override
         public Object instantiateItem(ViewGroup container, int position)
         {
-            ImageView view = new ImageView(MainActivity.this);
+            View view = LayoutInflater.from(getApplicationContext()).inflate(R.layout.view_page_item, null);
             final int realPosition = getRealPosition(position);
-            view.setImageResource(imgRes[realPosition]);
             container.addView(view);
+            ImageView content = view.findViewById(R.id.iv_pager);
+            content.setBackgroundResource(imgRes[realPosition]);
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
-                    startActivity(intent);
                 }
             });
             return view;
@@ -129,6 +85,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         }
 
+        @Override
+        public float getPageWidth(int position) {
+            return (float)1;
+        }
+
         private int getRealCount() {
             return imgRes.length;
         }
@@ -145,5 +106,4 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             return Integer.MAX_VALUE / getRealCount() / 2 * getRealCount() - 1;
         }
     }
-
 }
