@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.listory.songkang.activity.AlbumActivity"
+    tools:showIn="@layout/activity_album">
+    <com.listory.songkang.container.NavigationTabStrip
+        android:id="@+id/navigation_tab_strip"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp45"
+        android:layout_below="@id/toolbar"
+        app:nts_titles="@array/nav_titles"
+        app:nts_color="#000"
+        app:nts_size="16sp"
+        app:nts_weight="1dp"
+        app:nts_factor="2.5"
+        app:nts_type="line"
+        app:nts_gravity="bottom"
+        app:nts_corners_radius="1.5dp"
+        app:nts_animation_duration="300"
+        app:nts_strip_color="#ff1f43"
+        app:nts_active_color="#333333"
+        app:nts_inactive_color="#333333" />
+</android.support.v4.widget.NestedScrollView>

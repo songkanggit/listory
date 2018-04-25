@@ -14,15 +14,17 @@ import android.widget.ImageView;
 
 import com.listory.songkang.listory.R;
 import com.listory.songkang.transformer.ScaleInTransformer;
+import com.listory.songkang.view.AvatarCircleView;
 
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private DrawerLayout mDrawerLayout;
     private int[] imgRes = {R.mipmap.view_page_01, R.mipmap.view_page_02, R.mipmap.view_page_03, R.mipmap.view_page_01,
             R.mipmap.view_page_02, R.mipmap.view_page_03};
     private PagerAdapter mAdapter;
     private ViewPager mViewPager;
+    private AvatarCircleView mCircleView;
 
     protected void parseNonNullBundle(Bundle bundle){
 
@@ -35,86 +37,15 @@ public class MainActivity extends BaseActivity {
     protected void viewAffairs(){
         mViewPager = fvb(R.id.id_viewpager);
         mDrawerLayout = fvb(R.id.contentPanel);
+        mCircleView = fvb(R.id.circle_view);
     }
     protected void assembleViewClickAffairs(){
-
+        mCircleView.setOnClickListener(this);
     }
     protected void initDataAfterUiAffairs(){
         mViewPager.setPageMargin(0);
         mViewPager.setOffscreenPageLimit(3);
-        mViewPager.setAdapter(mAdapter = new PagerAdapter()
-        {
-            @Override
-            public Object instantiateItem(ViewGroup container, int position)
-            {
-                ImageView view = new ImageView(MainActivity.this);
-                final int realPosition = getRealPosition(position);
-                view.setImageResource(imgRes[realPosition]);
-                container.addView(view);
-                view.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        startMusicPlayer();
-                    }
-                });
-                return view;
-            }
-
-
-            @Override
-            public int getItemPosition(Object object) {
-                return POSITION_NONE;
-            }
-
-            @Override
-            public void destroyItem(ViewGroup container, int position, Object object)
-            {
-                container.removeView((View) object);
-            }
-
-            @Override
-            public int getCount()
-            {
-                return Integer.MAX_VALUE;
-            }
-
-            @Override
-            public boolean isViewFromObject(View view, Object o)
-            {
-                return view == o;
-            }
-
-            @Override
-            public void startUpdate(ViewGroup container) {
-                super.startUpdate(container);
-                ViewPager viewPager = (ViewPager) container;
-                int position = viewPager.getCurrentItem();
-                if (position == 0) {
-                    position = getFirstItemPosition();
-                } else if (position == getCount() - 1) {
-                    position = getLastItemPosition();
-                }
-                viewPager.setCurrentItem(position, false);
-
-            }
-
-            private int getRealCount() {
-                return imgRes.length;
-            }
-
-            private int getRealPosition(int position) {
-                return position % getRealCount();
-            }
-
-            private int getFirstItemPosition() {
-                return Integer.MAX_VALUE / getRealCount() / 2 * getRealCount();
-            }
-
-            private int getLastItemPosition() {
-                return Integer.MAX_VALUE / getRealCount() / 2 * getRealCount() - 1;
-            }
-        });
-
+        mViewPager.setAdapter(mAdapter = new HomePageAdapter());
         mViewPager.setPageTransformer(true, new ScaleInTransformer());
     }
 
@@ -128,9 +59,91 @@ public class MainActivity extends BaseActivity {
         return true;
     }
 
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.circle_view:
+                startMusicPlayer();
+                break;
+        }
+    }
+
     private void startMusicPlayer() {
         Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
         startActivity(intent);
+    }
+
+    private class HomePageAdapter extends PagerAdapter {
+        @Override
+        public Object instantiateItem(ViewGroup container, int position)
+        {
+            ImageView view = new ImageView(MainActivity.this);
+            final int realPosition = getRealPosition(position);
+            view.setImageResource(imgRes[realPosition]);
+            container.addView(view);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
+                    startActivity(intent);
+                }
+            });
+            return view;
+        }
+
+
+        @Override
+        public int getItemPosition(Object object) {
+            return POSITION_NONE;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object)
+        {
+            container.removeView((View) object);
+        }
+
+        @Override
+        public int getCount()
+        {
+            return Integer.MAX_VALUE;
+        }
+
+        @Override
+        public boolean isViewFromObject(View view, Object o)
+        {
+            return view == o;
+        }
+
+        @Override
+        public void startUpdate(ViewGroup container) {
+            super.startUpdate(container);
+            ViewPager viewPager = (ViewPager) container;
+            int position = viewPager.getCurrentItem();
+            if (position == 0) {
+                position = getFirstItemPosition();
+            } else if (position == getCount() - 1) {
+                position = getLastItemPosition();
+            }
+            viewPager.setCurrentItem(position, false);
+
+        }
+
+        private int getRealCount() {
+            return imgRes.length;
+        }
+
+        private int getRealPosition(int position) {
+            return position % getRealCount();
+        }
+
+        private int getFirstItemPosition() {
+            return Integer.MAX_VALUE / getRealCount() / 2 * getRealCount();
+        }
+
+        private int getLastItemPosition() {
+            return Integer.MAX_VALUE / getRealCount() / 2 * getRealCount() - 1;
+        }
     }
 
 }

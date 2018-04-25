@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="nav_titles">
+        <item>@string/album_title_0</item>
+        <item>@string/album_title_1</item>
+    </string-array>
+
+</resources>

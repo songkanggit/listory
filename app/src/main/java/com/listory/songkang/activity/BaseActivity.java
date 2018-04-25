@@ -59,11 +59,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         mHttpService = mCoreContext.getApplicationService(HttpManager.class);
         parseIntent(getIntent());
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-//            WindowManager.LayoutParams localLayoutParams = getWindow().getAttributes();
-//            localLayoutParams.flags = (WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS | localLayoutParams.flags);
-//        }
-
         initDataIgnoreUi();
         int layoutResId = getLayoutResourceId();
         if(layoutResId != 0) {

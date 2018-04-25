@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--value-->
+    <integer name="sign_in_page_scale_in_percent">76</integer>
+
+    <!--string-->
+
+    <!--colors-->
+    <color name="colorPrimary">@color/colorC49C08</color>
+    <color name="colorPrimaryDark">@color/colorFBC600</color>
+    <color name="colorAccent">@color/colorFF4081</color>
+
+    <color name="black_overlay">@color/color333333</color>
+    <color name="colorWhite">#FFFFFF</color>
+    <color name="colorBackground">#f4f5f7</color>
+
+    <!-- QRCode scanner color begin -->
+    <color name="viewfinder_mask">#60000000</color>
+    <color name="result_view">#B0000000</color>
+    <color name="viewfinder_frame">#90FFFFFF</color>
+    <color name="result_point_color">#C0FFFF00</color>
+    <color name="laser_color">#0F0</color>
+    <color name="corner_color">#00FF00</color>
+    <!-- QRCode scanner color end -->
+
+    <!-- A light Holo shade of blue -->
+    <color name="holo_blue_light">#ff33b5e5</color>
+    <!-- A light Holo shade of green -->
+    <color name="holo_green_light">#ff99cc00</color>
+    <!-- A light Holo shade of red -->
+    <color name="holo_red_light">#ffff4444</color>
+    <!-- A dark Holo shade of blue -->
+    <color name="holo_blue_dark">#ff0099cc</color>
+    <!-- A dark Holo shade of green -->
+    <color name="holo_green_dark">#ff669900</color>
+    <!-- A dark Holo shade of red -->
+    <color name="holo_red_dark">#ffcc0000</color>
+    <!-- A Holo shade of purple -->
+    <color name="holo_purple">#ffaa66cc</color>
+    <!-- A light Holo shade of orange -->
+    <color name="holo_orange_light">#ffffbb33</color>
+    <!-- A dark Holo shade of orange -->
+    <color name="holo_orange_dark">#ffff8800</color>
+    <!-- A really bright Holo shade of blue -->
+    <color name="holo_blue_bright">#ff00ddff</color>
+
+    <color name="colorBlack">@android:color/black</color>
+    <color name="colorTransparent">@android:color/transparent</color>
+    <color name="colorItemSelected">@color/colorWhite</color>
+    <color name="colorItemUnselected">@color/color80FFFFFF</color>
+    <color name="colorChangePlayerDivider">@color/color457AE4</color>
+    <color name="colorVideoPanelDivider">@color/color3162BA</color>
+    <color name="colorDialogBg">@color/color4D0000</color>
+    <color name="colorHeaderBg">#f1f1f1</color>
+
+    <!--dimen-->
+    <dimen name="toolbar_padding_top">@dimen/dp25</dimen>
+    <dimen name="indicator_padding">@dimen/dp6</dimen>
+    <dimen name="indicator_layout_height">@dimen/dp33</dimen>
+    <dimen name="portrait_size">@dimen/dp150</dimen>
+    <dimen name="service_chooser_size">@dimen/dp40</dimen>
+    <dimen name="head_account_layer_height">@dimen/dp120</dimen>
+    <dimen name="service_chooser_margin_top">@dimen/dp80</dimen>
+    <dimen name="control_button_margin_bottom">@dimen/dp40</dimen>
+    <dimen name="control_button_text_size">@dimen/sp30</dimen>
+    <dimen name="shadow_bg_button_text_margin_bottom">@dimen/dp70</dimen>
+    <dimen name="portrait_horizontal_pic_name_margin">@dimen/dp30</dimen>
+    <dimen name="bottom_bar_text_size">@dimen/sp10</dimen>
+    <dimen name="bottom_bar_ll_paddingTop">@dimen/dp10</dimen>
+    <dimen name="personal_center_text_size">@dimen/sp16</dimen>
+    <!--drawable-->
+</resources>
