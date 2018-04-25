@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/dp60"
+    android:background="@color/colorWhite">
+    <com.zealens.storytree.view.CachedImageView
+        android:id="@+id/iv_icon"
+        android:layout_width="@dimen/dp60"
+        android:layout_height="@dimen/dp60"
+        android:layout_marginLeft="@dimen/dp10"
+        android:layout_marginBottom="@dimen/dp10"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"/>
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/iv_icon"
+        android:layout_marginTop="@dimen/dp12"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="@dimen/dp10"
+        android:textSize="@dimen/sp14"
+        android:textColor="#333333" />
+    <TextView
+        android:id="@+id/tv_author"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/iv_icon"
+        android:layout_below="@id/tv_name"
+        android:layout_marginLeft="@dimen/dp10"
+        android:layout_marginTop="@dimen/dp10"
+        android:textSize="@dimen/sp11"
+        android:textColor="#666666"/>
+    <ImageView
+        android:id="@+id/iv_favorite"
+        android:layout_width="@dimen/dp45"
+        android:layout_height="@dimen/dp45"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="@dimen/dp10"
+        android:padding="@dimen/dp15"
+        android:src="@mipmap/melody_unlike"/>
+</RelativeLayout>
