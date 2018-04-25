@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_marginBottom="90dp"
+    android:paddingTop="40dp">
+    <com.listory.songkang.view.AvatarCircleView
+        android:id="@+id/circle_view"
+        android:layout_width="76dp"
+        android:layout_height="76dp"
+        android:layout_centerInParent="true"
+        android:src="@mipmap/default_login_logo"/>
+    <TextView
+        style="@style/NavigationTextView"
+        android:layout_below="@id/circle_view"
+        android:layout_marginTop="15dp"
+        android:layout_centerHorizontal="true"
+        android:text="登录/注册" />
+</RelativeLayout>
