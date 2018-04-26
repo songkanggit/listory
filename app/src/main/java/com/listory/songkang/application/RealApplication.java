@@ -15,6 +15,7 @@ import com.listory.songkang.core.download.DownloadManager;
 import com.listory.songkang.core.http.HttpManager;
 import com.listory.songkang.core.logger.LoggerManager;
 import com.listory.songkang.core.preference.PreferencesManager;
+import com.listory.songkang.service.MusicPlayer;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;

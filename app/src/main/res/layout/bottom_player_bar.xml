@@ -18,7 +18,7 @@
         android:orientation="horizontal"
         android:background="@drawable/rectangle_with_upper_line">
         <TextView
-            android:id="@+id/melody_name"
+            android:id="@+id/tv_melody_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -28,14 +28,14 @@
             android:textSize="15sp"/>
 
         <ImageView
-            android:id="@+id/imageView_play"
+            android:id="@+id/iv_play"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@mipmap/bottom_player_play"
             android:layout_marginRight="22dp" />
 
         <ImageView
-            android:id="@+id/imageView_list"
+            android:id="@+id/iv_list"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@mipmap/bottom_player_list"

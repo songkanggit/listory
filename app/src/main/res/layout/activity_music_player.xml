@@ -62,12 +62,14 @@
     </LinearLayout>
     <com.listory.songkang.view.CustomSeekBar
         android:id="@+id/seek_bar"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="27dp"
         android:layout_marginLeft="22dp"
         android:layout_marginRight="22dp"
+        android:paddingStart="@dimen/dp4"
+        android:paddingEnd="@dimen/dp4"
         android:layout_below="@id/ll_control_panel"
         android:maxHeight="1dp"
         android:maxWidth="2dp"
@@ -81,8 +83,8 @@
         android:orientation="vertical"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="9dp"
-        android:layout_marginLeft="22dp"
-        android:layout_marginRight="22dp"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"
         android:layout_below="@id/seek_bar">
         <TextView
             android:id="@+id/tv_play_left"

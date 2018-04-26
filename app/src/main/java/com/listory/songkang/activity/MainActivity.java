@@ -13,7 +13,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.listory.songkang.listory.R;
+import com.listory.songkang.service.MusicPlayer;
 import com.listory.songkang.transformer.ScaleInTransformer;
+import com.listory.songkang.utils.PermissionUtil;
 import com.listory.songkang.view.AvatarCircleView;
 
 
@@ -25,12 +27,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private PagerAdapter mAdapter;
     private ViewPager mViewPager;
     private AvatarCircleView mCircleView;
+    private ImageView mPlayControlImageView;
 
     protected void parseNonNullBundle(Bundle bundle){
 
     }
     protected void initDataIgnoreUi() {
-
+        if(!MusicPlayer.getInstance().isServiceConnected()) {
+            MusicPlayer.getInstance().bindMediaService(getApplicationContext());
+        }
+        PermissionUtil.verifyStoragePermissions(MainActivity.this);
     }
     @LayoutRes
     protected int getLayoutResourceId() { return R.layout.activity_main;}
@@ -38,9 +44,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         mViewPager = fvb(R.id.id_viewpager);
         mDrawerLayout = fvb(R.id.contentPanel);
         mCircleView = fvb(R.id.circle_view);
+        mPlayControlImageView = fvb(R.id.iv_play);
     }
     protected void assembleViewClickAffairs(){
         mCircleView.setOnClickListener(this);
+        mPlayControlImageView.setOnClickListener(this);
     }
     protected void initDataAfterUiAffairs(){
         mViewPager.setPageMargin(20);
@@ -63,14 +71,25 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.circle_view:
-                startMusicPlayer();
+                Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.iv_play:
+                if(MusicPlayer.getInstance().isPlaying()) {
+                    MusicPlayer.getInstance().pause();
+                    mPlayControlImageView.setImageResource(R.mipmap.bottom_player_play);
+                } else {
+                    MusicPlayer.getInstance().play();
+                    mPlayControlImageView.setImageResource(R.mipmap.bottom_player_pause);
+                }
                 break;
         }
     }
 
-    private void startMusicPlayer() {
-        Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
-        startActivity(intent);
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        MusicPlayer.getInstance().unBindMediaService(getApplicationContext());
     }
 
     private class HomePageAdapter extends PagerAdapter {

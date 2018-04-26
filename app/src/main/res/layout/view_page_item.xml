@@ -2,14 +2,20 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <TextView
-        android:id="@+id/iv_pager"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginLeft="@dimen/dp15"
         android:layout_marginRight="@dimen/dp15"
-        android:lineSpacingExtra="@dimen/dp8"
-        android:textSize="@dimen/sp14"
-        android:scrollbars="none"
-        android:textColor="@color/color666666" />
+        android:layout_marginBottom="@dimen/dp10"
+        android:scrollbars="none">
+        <TextView
+            android:id="@+id/iv_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:lineSpacingExtra="@dimen/dp8"
+            android:textSize="@dimen/sp14"
+            android:textColor="@color/color666666" />
+    </ScrollView>
+
 </LinearLayout>
