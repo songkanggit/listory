@@ -26,14 +26,21 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
     private AlbumListFragment mAlbumListFragment;
     private List<Fragment> mViewPagerData;
     private List<Melody> mMelodyList;
+    private String[] mMelodyNames;
 
     protected void parseNonNullBundle(Bundle bundle){
 
     }
     protected void initDataIgnoreUi() {
         mViewPagerData = new ArrayList<>();
+        mMelodyList = new ArrayList<>();
         mViewPagerData.add(new TextViewFragment());
         mViewPagerData.add(mAlbumListFragment = new AlbumListFragment());
+        mMelodyNames = getResources().getStringArray(R.array.will_youth_names);
+        for(String name:mMelodyNames) {
+            mMelodyList.add(new Melody(name));
+        }
+        mAlbumListFragment.setData(mMelodyList);
     }
     @LayoutRes
     protected int getLayoutResourceId() { return R.layout.activity_album;}

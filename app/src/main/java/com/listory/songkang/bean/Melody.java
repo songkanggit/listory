@@ -12,6 +12,12 @@ public class Melody {
     private String url;
     private String like;
 
+    public Melody(String name){
+        this.name = name;
+        this.author = "杨梅、西柚、榴莲";
+        this.like = "0";
+    }
+
     public String getId() {
         return id;
     }

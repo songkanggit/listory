@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorWhite"
     android:fitsSystemWindows="true"
     tools:context="com.listory.songkang.activity.AlbumActivity">
 
@@ -22,6 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/iv_album"
+        android:background="@color/colorWhite"
         android:layout_marginTop="@dimen/dp12"
         android:layout_marginLeft="@dimen/dp8"
         android:text="有志少年"
@@ -32,6 +34,7 @@
         android:id="@+id/navigation_tab_strip"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp45"
+        android:background="@color/colorWhite"
         android:layout_below="@id/tv_album_name"
         android:layout_marginTop="@dimen/dp10"
         app:nts_titles="@array/nav_titles"

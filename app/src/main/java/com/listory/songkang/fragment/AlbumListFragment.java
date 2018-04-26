@@ -29,7 +29,6 @@ public class AlbumListFragment extends BaseFragment {
     public void setData(List<Melody> list) {
         mDataList.clear();
         mDataList.addAll(list);
-        mContentAdapter.notifyDataSetChanged();
     }
 
     public interface OnItemClickListener {
@@ -47,7 +46,7 @@ public class AlbumListFragment extends BaseFragment {
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.addItemDecoration(new LinearLayoutItemDecoration(0, 2, getResources().getColor(R.color.colorF4F5F7)));
+        mRecyclerView.addItemDecoration(new LinearLayoutItemDecoration(2, 2, getResources().getColor(R.color.colorF4F5F7)));
         mRecyclerView.setAdapter(mContentAdapter = new ContentAdapter());
     }
 
