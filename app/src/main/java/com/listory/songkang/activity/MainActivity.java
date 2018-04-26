@@ -1,6 +1,10 @@
 package com.listory.songkang.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.BitmapFactory;
 import android.support.annotation.LayoutRes;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
@@ -11,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.listory.songkang.application.RealApplication;
 import com.listory.songkang.bean.Melody;
@@ -31,10 +36,28 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private DrawerLayout mDrawerLayout;
     private int[] imgRes = {R.mipmap.will_youth, R.mipmap.mr_black, R.mipmap.will_youth, R.mipmap.mr_black,
             R.mipmap.will_youth, R.mipmap.mr_black};
-    private PagerAdapter mAdapter;
     private ViewPager mViewPager;
     private AvatarCircleView mCircleView;
     private ImageView mPlayControlImageView;
+
+    private TextView mMelodyNameTV;
+
+    private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            switch (action) {
+                case MediaService.MUSIC_CHANGE_ACTION:
+                    MusicTrack musicTrack = intent.getParcelableExtra(MediaService.MUSIC_CHANGE_ACTION_PARAM);
+                    if(musicTrack != null) {
+                        mCircleView.setImageBitmap(BitmapFactory.
+                                decodeFile(musicTrack.mCoverImageUrl.split(";")[1]));
+                        mMelodyNameTV.setText(musicTrack.mTitle);
+                    }
+                    break;
+            }
+        }
+    };
 
     protected void parseNonNullBundle(Bundle bundle){
 
@@ -43,14 +66,18 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         MusicPlayer.getInstance().bindMediaService(getApplicationContext());
         MusicPlayer.getInstance().addConnectionCallback(this);
         PermissionUtil.verifyStoragePermissions(MainActivity.this);
+        IntentFilter intentFilter = new IntentFilter(MediaService.MUSIC_CHANGE_ACTION);
+        registerReceiver(mIntentReceiver, intentFilter);
     }
     @LayoutRes
     protected int getLayoutResourceId() { return R.layout.activity_main;}
     protected void viewAffairs(){
         mViewPager = fvb(R.id.id_viewpager);
         mDrawerLayout = fvb(R.id.contentPanel);
-        mCircleView = fvb(R.id.circle_view);
         mPlayControlImageView = fvb(R.id.iv_play);
+
+        mCircleView = fvb(R.id.circle_view);
+        mMelodyNameTV = fvb(R.id.tv_melody_name);
     }
     protected void assembleViewClickAffairs(){
         mCircleView.setOnClickListener(this);
@@ -59,7 +86,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     protected void initDataAfterUiAffairs(){
         mViewPager.setPageMargin(20);
         mViewPager.setOffscreenPageLimit(3);
-        mViewPager.setAdapter(mAdapter = new HomePageAdapter());
+        mViewPager.setAdapter(new HomePageAdapter());
         mViewPager.setPageTransformer(true, new ScaleInTransformer());
     }
 
@@ -79,6 +106,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             case R.id.circle_view:
                 Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
                 intent.putExtra(MusicPlayerActivity.BUNDLE_DATA, ((RealApplication)getApplication()).getMelodyContent(RealApplication.MediaContent.WILL_YOUTH).get(0));
+                intent.putExtra(MusicPlayerActivity.BUNDLE_DATA_PLAY, false);
                 startActivity(intent);
                 break;
             case R.id.iv_play:
@@ -96,6 +124,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(mIntentReceiver);
         MusicPlayer.getInstance().unBindMediaService(getApplicationContext());
     }
 

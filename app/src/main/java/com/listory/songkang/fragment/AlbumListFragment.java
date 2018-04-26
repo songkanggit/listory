@@ -1,5 +1,6 @@
 package com.listory.songkang.fragment;
 
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.media.Image;
 import android.os.Bundle;
@@ -11,8 +12,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.listory.songkang.activity.MusicPlayerActivity;
+import com.listory.songkang.adapter.RecyclerViewMelodyListAdapter;
+import com.listory.songkang.application.RealApplication;
 import com.listory.songkang.bean.Melody;
 import com.listory.songkang.listory.R;
+import com.listory.songkang.service.MediaService;
+import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.view.CachedImageView;
 
 import java.util.ArrayList;
@@ -22,19 +28,15 @@ import java.util.List;
  * Created by songkang on 2018/4/25.
  */
 
-public class AlbumListFragment extends BaseFragment {
+public class AlbumListFragment extends BaseFragment implements RecyclerViewMelodyListAdapter.OnItemClickListener {
 
     private RecyclerView mRecyclerView;
-    private ContentAdapter mContentAdapter;
+    private RecyclerViewMelodyListAdapter mContentAdapter;
     private List<Melody> mDataList = new ArrayList<>();
 
     public void setData(List<Melody> list) {
         mDataList.clear();
         mDataList.addAll(list);
-    }
-
-    public interface OnItemClickListener {
-        void onItemClick(View view , int position);
     }
 
     @Override
@@ -49,61 +51,24 @@ public class AlbumListFragment extends BaseFragment {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearLayoutItemDecoration(2, 2, getResources().getColor(R.color.colorF4F5F7)));
-        mRecyclerView.setAdapter(mContentAdapter = new ContentAdapter());
+        mRecyclerView.setAdapter(mContentAdapter = new RecyclerViewMelodyListAdapter(getContext(), mDataList));
+        mContentAdapter.setOnItemClickListener(this);
     }
 
-    class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.MyViewHolder> implements View.OnClickListener {
-
-        private OnItemClickListener onItemClickListener;
-
-        @Override
-        public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View holder = LayoutInflater.from(getActivity()).inflate(R.layout.recycler_view_holder_melody, parent, false);
-            holder.setOnClickListener(this);
-            return new MyViewHolder(holder);
+    @Override
+    public void onItemClick(View view, int position) {
+        ArrayList<MusicTrack> dataList = new ArrayList<>();
+        for(Melody bean: mDataList) {
+            dataList.add(bean.convertToMusicTrack());
         }
+        Intent broadcast = new Intent(MediaService.PLAY_ACTION);
+        broadcast.putParcelableArrayListExtra(MediaService.PLAY_ACTION_PARAM_LIST, dataList);
+        broadcast.putExtra(MediaService.PLAY_ACTION_PARAM_POSITION, 0);
+        getActivity().sendBroadcast(broadcast);
 
-        @Override
-        public void onBindViewHolder(MyViewHolder holder, int position) {
-            Melody melody = mDataList.get(position);
-            holder.imageView.setImageBitmap(BitmapFactory.decodeFile(melody.getIcon().split(";")[1]));
-            holder.name.setText(melody.getName());
-            holder.author.setText(melody.getAuthor());
-            if(melody.getLike().equals("1")) {
-                holder.like.setImageResource(R.mipmap.melody_like);
-            }
-            holder.itemView.setTag(position);
-        }
-
-        @Override
-        public int getItemCount() {
-            return mDataList.size();
-        }
-
-        @Override
-        public void onClick(View v) {
-            if(onItemClickListener != null) {
-                onItemClickListener.onItemClick(v, (int)v.getTag());
-            }
-        }
-
-        public void setOnItemClickListener(OnItemClickListener listener) {
-            onItemClickListener = listener;
-        }
-
-        class MyViewHolder extends RecyclerView.ViewHolder {
-            ImageView imageView;
-            TextView name;
-            TextView author;
-            ImageView like;
-
-            public MyViewHolder(View v){
-                super(v);
-                imageView = v.findViewById(R.id.iv_icon);
-                name = v.findViewById(R.id.tv_name);
-                author = v.findViewById(R.id.tv_author);
-                like = v.findViewById(R.id.iv_favorite);
-            }
-        }
+        Intent intent = new Intent(getActivity(), MusicPlayerActivity.class);
+        intent.putExtra(MusicPlayerActivity.BUNDLE_DATA, mDataList.get(position));
+        intent.putExtra(MusicPlayerActivity.BUNDLE_DATA_PLAY, true);
+        startActivity(intent);
     }
 }

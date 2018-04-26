@@ -1,6 +1,5 @@
 package com.listory.songkang.activity;
 
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.v4.app.Fragment;

@@ -24,20 +24,20 @@
             android:layout_weight="1"
             android:gravity="left"
             android:text="有志少年的故事"
+            android:singleLine="true"
+            android:ma
             android:textColor="#333333"
             android:textSize="15sp"/>
 
         <ImageView
             android:id="@+id/iv_play"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/BottomControlButtonStyle"
             android:src="@mipmap/bottom_player_play"
             android:layout_marginRight="22dp" />
 
         <ImageView
             android:id="@+id/iv_list"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/BottomControlButtonStyle"
             android:src="@mipmap/bottom_player_list"
             android:layout_marginRight="20dp" />
     </LinearLayout>
@@ -48,5 +48,6 @@
         android:layout_centerVertical="true"
         android:layout_alignParentLeft="true"
         android:layout_marginLeft="15dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@mipmap/will_youth_icon"/>
 </RelativeLayout>

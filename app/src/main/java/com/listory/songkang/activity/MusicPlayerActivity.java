@@ -25,6 +25,7 @@ import com.listory.songkang.utils.PermissionUtil;
  */
 public class MusicPlayerActivity extends BaseActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
     public static final String BUNDLE_DATA = "data";
+    public static final String BUNDLE_DATA_PLAY = "data_play";
 
     private ImageView mBackImageView, mAlbumCoverIV;
     private SeekBar mSeekBar;
@@ -32,7 +33,8 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
     private TextView mCurrentTime, mLastTime, mMelodyNameTV;
     private ImageView mDownloadIV, mLikeIV, mCommentIV, mShareIV;
     private ImageView mRandomIV, mPreIV, mPauseResumeIV, mNextIV, mListIV;
-    private boolean isLike;
+    private boolean mIsLike;
+    private boolean mIsAutoPlay;
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
@@ -50,7 +52,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
                         mSeekBar.setMax(duration);
                         mSeekBar.setProgress((int)position);
                         mCurrentTime.setText(getTimeLine((int)position));
-                        mLastTime.setText(getTimeLine(duration));
+                        mLastTime.setText(getTimeLine(duration - (int)position));
                     }
                     break;
                 case MediaService.MUSIC_CHANGE_ACTION:
@@ -69,6 +71,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         if(melody != null) {
             mMusicTrack = melody.convertToMusicTrack();
         }
+        mIsAutoPlay = bundle.getBoolean(BUNDLE_DATA_PLAY);
     }
     protected void initDataIgnoreUi() {
         PermissionUtil.verifyStoragePermissions(MusicPlayerActivity.this);
@@ -121,9 +124,14 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        if(MusicPlayer.getInstance().isPlaying()) {
-            mMusicTrack = MusicPlayer.getInstance().getCurrentMusicTrack();
-            togglePlayState();
+        MusicTrack musicTrack = MusicPlayer.getInstance().getCurrentMusicTrack();
+        if(musicTrack != null) {
+            mMusicTrack = musicTrack;
+        } else {
+            mIsAutoPlay = true;
+        }
+        if(mIsAutoPlay) {
+            MusicPlayer.getInstance().play();
         }
         updateMusicUI();
     }
@@ -137,11 +145,11 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
             case R.id.iv_download:
                 break;
             case R.id.iv_like:
-                if(isLike) {
-                    isLike = false;
+                if(mIsLike) {
+                    mIsLike = false;
                     mLikeIV.setImageResource(R.mipmap.music_player_unlike);
                 } else {
-                    isLike = true;
+                    mIsLike = true;
                     mLikeIV.setImageResource(R.mipmap.music_player_like);
                 }
                 break;
@@ -186,7 +194,12 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         if(mMusicTrack != null) {
             mAlbumCoverIV.setImageBitmap(BitmapFactory.decodeFile(mMusicTrack.mCoverImageUrl.split(";")[0]));
             mMelodyNameTV.setText(mMusicTrack.mTitle);
-            isLike = true;
+            mIsLike = true;
+        }
+        if(MusicPlayer.getInstance().isPlaying()) {
+            mPauseResumeIV.setImageResource(R.mipmap.music_player_pause);
+        } else {
+            mPauseResumeIV.setImageResource(R.mipmap.music_player_play);
         }
     }
 
