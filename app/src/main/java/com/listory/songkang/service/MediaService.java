@@ -155,7 +155,7 @@ public class MediaService extends Service {
                     position = -1;
                 }
                 open(musicTrackList, position);
-                play();
+//                play();
                 break;
             case PAUSE_ACTION:
                 break;

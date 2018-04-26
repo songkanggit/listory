@@ -1,6 +1,7 @@
 package com.listory.songkang.fragment;
 
 import android.os.Bundle;
+import android.support.annotation.StringRes;
 import android.widget.TextView;
 
 import com.listory.songkang.listory.R;
@@ -11,6 +12,14 @@ import com.listory.songkang.listory.R;
 
 public class TextViewFragment extends BaseFragment {
     private TextView mTextView;
+
+    @StringRes
+    private int mAbstractText = R.string.will_youth_abstract;
+
+    public void setText(@StringRes int text) {
+        mAbstractText = text;
+    }
+
     @Override
     protected int getLayoutId() {
         return R.layout.view_page_item;
@@ -19,6 +28,6 @@ public class TextViewFragment extends BaseFragment {
     @Override
     protected void afterCreate(Bundle savedInstanceState) {
         mTextView = mRootView.findViewById(R.id.iv_pager);
-        mTextView.setText(R.string.will_youth_abstract);
+        mTextView.setText(mAbstractText);
     }
 }

@@ -10,6 +10,7 @@ import android.os.RemoteException;
 
 import com.listory.songkang.IMediaPlayerAidlInterface;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,8 +23,10 @@ public class MusicPlayer {
     private static IMediaPlayerAidlInterface mService;
     private static MusicPlayer s_Instance = new MusicPlayer();
     private ServiceBinder mServiceConnection;
+    private List<ConnectionState> mConnectionCallbacks;
 
     private MusicPlayer() {
+        mConnectionCallbacks = new ArrayList<>();
     }
 
     public static MusicPlayer getInstance() {
@@ -194,17 +197,26 @@ public class MusicPlayer {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mService = IMediaPlayerAidlInterface.Stub.asInterface(service);
-            try {
-                mService.openFile("/sdcard/wangerxiao.mp3");
-            } catch (RemoteException e) {
-                e.printStackTrace();
+            for(ConnectionState state: mConnectionCallbacks) {
+                state.onServiceConnected();
             }
-
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mService = null;
+            for(ConnectionState state: mConnectionCallbacks) {
+                state.onServiceDisconnected();
+            }
         }
+    }
+
+    public void addConnectionCallback(ConnectionState callback) {
+        mConnectionCallbacks.add(callback);
+    }
+
+    public interface ConnectionState {
+        void onServiceConnected();
+        void onServiceDisconnected();
     }
 }

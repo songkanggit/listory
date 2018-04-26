@@ -1,5 +1,7 @@
 package com.listory.songkang.fragment;
 
+import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -64,7 +66,7 @@ public class AlbumListFragment extends BaseFragment {
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
             Melody melody = mDataList.get(position);
-            holder.imageView.setImageUrl(melody.getUrl());
+            holder.imageView.setImageBitmap(BitmapFactory.decodeFile(melody.getIcon().split(";")[1]));
             holder.name.setText(melody.getName());
             holder.author.setText(melody.getAuthor());
             if(melody.getLike().equals("1")) {
@@ -90,7 +92,7 @@ public class AlbumListFragment extends BaseFragment {
         }
 
         class MyViewHolder extends RecyclerView.ViewHolder {
-            CachedImageView imageView;
+            ImageView imageView;
             TextView name;
             TextView author;
             ImageView like;

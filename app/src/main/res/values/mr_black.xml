@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="mr_black_names">
+        <item>粮仓隐情</item>
+        <item>洗劫粮仓</item>
+        <item>着手调查</item>
+        <item>营救行动</item>
+        <item>激烈大战</item>
+        <item>一只耳使坏</item>
+        <item>围墙被破坏</item>
+        <item>追踪破坏分子</item>
+        <item>审判破坏分子</item>
+        <item>海滩足迹</item>
+        <item>逃到非洲</item>
+        <item>巧遇吃猫鼠舅舅</item>
+        <item>吃猫鼠来了</item>
+        <item>吃猫鼠作恶</item>
+        <item>吃猫鼠覆灭</item>
+        <item>大老鹰出山</item>
+        <item>发现大老鹰</item>
+        <item>打败大老鹰</item>
+    </string-array>
+    <string-array name="mr_black_urls">
+        <item>/sdcard/1/tjhls1.mp3</item>
+        <item>/sdcard/1/tjhls2.mp3</item>
+        <item>/sdcard/1/tjhls3.mp3</item>
+        <item>/sdcard/1/tjhls4.mp3</item>
+        <item>/sdcard/1/tjhls5.mp3</item>
+        <item>/sdcard/1/djphfz1.mp3</item>
+        <item>/sdcard/1/djphfz2.mp3</item>
+        <item>/sdcard/1/djphfz3.mp3</item>
+        <item>/sdcard/1/djphfz4.mp3</item>
+        <item>/sdcard/1/cmsjjfmj1.mp3</item>
+        <item>/sdcard/1/cmsjjfmj2.mp3</item>
+        <item>/sdcard/1/cmsjjfmj3.mp3</item>
+        <item>/sdcard/1/cmsjjfmj4.mp3</item>
+        <item>/sdcard/1/cmsjjfmj5.mp3</item>
+        <item>/sdcard/1/cmsjjfmj6.mp3</item>
+        <item>/sdcard/1/dbdly1.mp3</item>
+        <item>/sdcard/1/dbdly2.mp3</item>
+        <item>/sdcard/1/dbdly3.mp3</item>
+    </string-array>
+    <string-array name="mr_black_icon">
+        <item>/sdcard/1/1_icon_1_1.png;/sdcard/1/1_icon_2_1.png</item>
+        <item>/sdcard/1/1_icon_1_2.png;/sdcard/1/1_icon_2_2.png</item>
+        <item>/sdcard/1/1_icon_1_3.png;/sdcard/1/1_icon_2_3.png</item>
+        <item>/sdcard/1/1_icon_1_4.png;/sdcard/1/1_icon_2_4.png</item>
+        <item>/sdcard/1/1_icon_1_5.png;/sdcard/1/1_icon_2_5.png</item>
+        <item>/sdcard/1/1_icon_1_6.png;/sdcard/1/1_icon_2_6.png</item>
+        <item>/sdcard/1/1_icon_1_7.png;/sdcard/1/1_icon_2_7.png</item>
+        <item>/sdcard/1/1_icon_1_8.png;/sdcard/1/1_icon_2_8.png</item>
+        <item>/sdcard/1/1_icon_1_9.png;/sdcard/1/1_icon_2_9.png</item>
+        <item>/sdcard/1/1_icon_1_10.png;/sdcard/1/1_icon_2_10.png</item>
+        <item>/sdcard/1/1_icon_1_11.png;/sdcard/1/1_icon_2_11.png</item>
+        <item>/sdcard/1/1_icon_1_12.png;/sdcard/1/1_icon_2_12.png</item>
+        <item>/sdcard/1/1_icon_1_13.png;/sdcard/1/1_icon_2_13.png</item>
+        <item>/sdcard/1/1_icon_1_14.png;/sdcard/1/1_icon_2_14.png</item>
+        <item>/sdcard/1/1_icon_1_15.png;/sdcard/1/1_icon_2_15.png</item>
+        <item>/sdcard/1/1_icon_1_16.png;/sdcard/1/1_icon_2_16.png</item>
+        <item>/sdcard/1/1_icon_1_17.png;/sdcard/1/1_icon_2_17.png</item>
+        <item>/sdcard/1/1_icon_1_18.png;/sdcard/1/1_icon_2_18.png</item>
+    </string-array>
+    <string-array name="mr_black_author">
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+        <item>李扬</item>
+    </string-array>
+</resources>

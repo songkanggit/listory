@@ -12,14 +12,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.listory.songkang.application.RealApplication;
+import com.listory.songkang.bean.Melody;
 import com.listory.songkang.listory.R;
+import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
+import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.transformer.ScaleInTransformer;
 import com.listory.songkang.utils.PermissionUtil;
 import com.listory.songkang.view.AvatarCircleView;
 
+import java.util.ArrayList;
+import java.util.List;
 
-public class MainActivity extends BaseActivity implements View.OnClickListener {
+
+public class MainActivity extends BaseActivity implements View.OnClickListener, MusicPlayer.ConnectionState {
 
     private DrawerLayout mDrawerLayout;
     private int[] imgRes = {R.mipmap.will_youth, R.mipmap.mr_black, R.mipmap.will_youth, R.mipmap.mr_black,
@@ -36,6 +43,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         if(!MusicPlayer.getInstance().isServiceConnected()) {
             MusicPlayer.getInstance().bindMediaService(getApplicationContext());
         }
+        MusicPlayer.getInstance().addConnectionCallback(this);
         PermissionUtil.verifyStoragePermissions(MainActivity.this);
     }
     @LayoutRes
@@ -92,6 +100,24 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         MusicPlayer.getInstance().unBindMediaService(getApplicationContext());
     }
 
+    @Override
+    public void onServiceConnected() {
+        ArrayList<MusicTrack> dataList = new ArrayList<>();
+        ArrayList<Melody> melodies = ((RealApplication)getApplication()).getMelodyContent(RealApplication.MediaContent.WILL_YOUTH);
+        for(Melody bean: melodies) {
+            dataList.add(bean.convertToMusicTrack());
+        }
+        Intent broadcast = new Intent(MediaService.PLAY_ACTION);
+        broadcast.putParcelableArrayListExtra(MediaService.PLAY_ACTION_PARAM_LIST, dataList);
+        broadcast.putExtra(MediaService.PLAY_ACTION_PARAM_POSITION, 0);
+        sendBroadcast(broadcast);
+    }
+
+    @Override
+    public void onServiceDisconnected() {
+
+    }
+
     private class HomePageAdapter extends PagerAdapter {
         @Override
         public Object instantiateItem(ViewGroup container, int position)
@@ -100,12 +126,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             final int realPosition = getRealPosition(position);
             view.setImageResource(imgRes[realPosition]);
             container.addView(view);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
-                    startActivity(intent);
+            view.setOnClickListener(v -> {
+                int contentType = RealApplication.MediaContent.WILL_YOUTH;
+                if(position%2 == 1) {
+                    contentType = RealApplication.MediaContent.MR_BLACK;
                 }
+                ArrayList<Melody> melodies = ((RealApplication)getApplication()).getMelodyContent(contentType);
+                Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
+                intent.putParcelableArrayListExtra(AlbumActivity.BUNDLE_DATA, melodies);
+                intent.putExtra(AlbumActivity.BUNDLE_DATA_TYPE, contentType);
+                startActivity(intent);
             });
             return view;
         }
