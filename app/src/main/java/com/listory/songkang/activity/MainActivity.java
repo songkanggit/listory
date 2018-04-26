@@ -40,9 +40,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     }
     protected void initDataIgnoreUi() {
-        if(!MusicPlayer.getInstance().isServiceConnected()) {
-            MusicPlayer.getInstance().bindMediaService(getApplicationContext());
-        }
+        MusicPlayer.getInstance().bindMediaService(getApplicationContext());
         MusicPlayer.getInstance().addConnectionCallback(this);
         PermissionUtil.verifyStoragePermissions(MainActivity.this);
     }
@@ -80,6 +78,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         switch (view.getId()) {
             case R.id.circle_view:
                 Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
+                intent.putExtra(MusicPlayerActivity.BUNDLE_DATA, ((RealApplication)getApplication()).getMelodyContent(RealApplication.MediaContent.WILL_YOUTH).get(0));
                 startActivity(intent);
                 break;
             case R.id.iv_play:

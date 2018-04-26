@@ -36,29 +36,21 @@
         android:layout_below="@id/melody_name"
         android:orientation="horizontal">
         <ImageView
-            android:layout_width="49dp"
-            android:layout_height="49dp"
-            android:padding="13dp"
-            android:src="@mipmap/music_player_download"
-            android:layout_weight="1"/>
+            android:id="@+id/iv_download"
+            style="@style/MusicPlayerControlButtonStyle"
+            android:src="@mipmap/music_player_download" />
         <ImageView
-            android:layout_width="49dp"
-            android:layout_height="49dp"
-            android:padding="13dp"
-            android:src="@mipmap/music_player_like"
-            android:layout_weight="1"/>
+            android:id="@+id/iv_like"
+            style="@style/MusicPlayerControlButtonStyle"
+            android:src="@mipmap/music_player_like" />
         <ImageView
-            android:layout_width="49dp"
-            android:layout_height="49dp"
-            android:padding="13dp"
-            android:src="@mipmap/music_player_comment"
-            android:layout_weight="1"/>
+            android:id="@+id/iv_comment"
+            style="@style/MusicPlayerControlButtonStyle"
+            android:src="@mipmap/music_player_comment"/>
         <ImageView
-            android:layout_width="49dp"
-            android:layout_height="49dp"
-            android:padding="13dp"
-            android:src="@mipmap/music_player_share"
-            android:layout_weight="1"/>
+            android:id="@+id/iv_share"
+            style="@style/MusicPlayerControlButtonStyle"
+            android:src="@mipmap/music_player_share"/>
     </LinearLayout>
     <com.listory.songkang.view.CustomSeekBar
         android:id="@+id/seek_bar"
@@ -68,8 +60,8 @@
         android:layout_marginTop="27dp"
         android:layout_marginLeft="22dp"
         android:layout_marginRight="22dp"
-        android:paddingStart="@dimen/dp4"
-        android:paddingEnd="@dimen/dp4"
+        android:paddingStart="@dimen/dp5"
+        android:paddingEnd="@dimen/dp5"
         android:layout_below="@id/ll_control_panel"
         android:maxHeight="1dp"
         android:maxWidth="2dp"
@@ -83,8 +75,8 @@
         android:orientation="vertical"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="9dp"
-        android:layout_marginLeft="25dp"
-        android:layout_marginRight="25dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
         android:layout_below="@id/seek_bar">
         <TextView
             android:id="@+id/tv_play_left"
@@ -115,33 +107,27 @@
         android:layout_marginBottom="10dp"
         android:orientation="horizontal">
         <ImageView
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:padding="12dp"
-            android:layout_weight="1"
+            android:id="@+id/iv_random_repeat"
+            style="@style/MusicPlayerControlButtonStyle"
             android:src="@mipmap/music_player_repeat"/>
         <ImageView
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:padding="12dp"
-            android:layout_weight="1"
+            android:id="@+id/iv_previous"
+            style="@style/MusicPlayerControlButtonStyle"
             android:src="@mipmap/music_player_previous"/>
         <ImageView
+            android:id="@+id/iv_pause_resume"
             android:layout_width="45dp"
             android:layout_height="45dp"
             android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@mipmap/music_player_play"/>
         <ImageView
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:padding="12dp"
-            android:layout_weight="1"
+            android:id="@+id/iv_next"
+            style="@style/MusicPlayerControlButtonStyle"
             android:src="@mipmap/music_player_next"/>
         <ImageView
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:padding="12dp"
-            android:layout_weight="1"
+            android:id="@+id/iv_list"
+            style="@style/MusicPlayerControlButtonStyle"
             android:src="@mipmap/music_player_list"/>
     </LinearLayout>
 </RelativeLayout>
