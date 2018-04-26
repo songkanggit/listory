@@ -130,26 +130,34 @@ public class MusicPlayer {
         return repeatMode;
     }
 
-    public void goToPrevious(){
+    public boolean goToPrevious(){
         if (mService == null) {
-            return ;
+            return false;
         }
         try {
             mService.prev(true);
+            return true;
         } catch (RemoteException e) {
             e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
-    public void goToNext() {
+    public boolean goToNext() {
         if (mService == null) {
-            return;
+            return false;
         }
         try {
             mService.next();
+            return true;
         } catch (RemoteException e) {
             e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
     public List<MusicTrack> getMusicTrackList() {

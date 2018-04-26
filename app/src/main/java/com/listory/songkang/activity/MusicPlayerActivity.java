@@ -160,13 +160,17 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
             case R.id.iv_random_repeat:
                 break;
             case R.id.iv_previous:
-                MusicPlayer.getInstance().goToPrevious();
+                if(MusicPlayer.getInstance().goToPrevious()) {
+                    enableNextAndPreviousControl(false);
+                }
                 break;
             case R.id.iv_pause_resume:
                 togglePlayState();
                 break;
             case R.id.iv_next:
-                MusicPlayer.getInstance().goToNext();
+                if(MusicPlayer.getInstance().goToNext()) {
+                    enableNextAndPreviousControl(false);
+                }
                 break;
             case R.id.iv_list:
                 break;
@@ -190,6 +194,16 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
 
     }
 
+    private void enableNextAndPreviousControl(boolean enable) {
+        if(enable) {
+            mPreIV.setEnabled(true);
+            mNextIV.setEnabled(true);
+        } else {
+            mPreIV.setEnabled(false);
+            mNextIV.setEnabled(false);
+        }
+    }
+
     private void updateMusicUI() {
         if(mMusicTrack != null) {
             mAlbumCoverIV.setImageBitmap(BitmapFactory.decodeFile(mMusicTrack.mCoverImageUrl.split(";")[0]));
@@ -201,6 +215,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         } else {
             mPauseResumeIV.setImageResource(R.mipmap.music_player_play);
         }
+        enableNextAndPreviousControl(true);
     }
 
     private void togglePlayState() {

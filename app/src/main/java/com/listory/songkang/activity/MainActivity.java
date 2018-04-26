@@ -122,6 +122,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if(MusicPlayer.getInstance().isPlaying()) {
+            mPlayControlImageView.setImageResource(R.mipmap.bottom_player_pause);
+        } else {
+            mPlayControlImageView.setImageResource(R.mipmap.bottom_player_play);
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mIntentReceiver);
