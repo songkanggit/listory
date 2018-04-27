@@ -47,6 +47,12 @@ public class RecyclerViewMelodyListAdapter<T> extends RecyclerView.Adapter<Recyc
         holder.author.setText(melody.getAuthor());
         if(melody.getLike().equals("1")) {
             holder.like.setImageResource(R.mipmap.melody_like);
+            holder.like.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    holder.like.setImageResource(R.mipmap.melody_like);
+                }
+            });
         }
         holder.itemView.setTag(position);
     }

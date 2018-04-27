@@ -33,11 +33,9 @@
         android:textColor="#666666"/>
     <ImageView
         android:id="@+id/iv_favorite"
-        android:layout_width="@dimen/dp45"
-        android:layout_height="@dimen/dp45"
+        style="@style/BottomControlButtonStyle"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:layout_marginRight="@dimen/dp10"
-        android:padding="@dimen/dp15"
         android:src="@mipmap/melody_unlike"/>
 </RelativeLayout>

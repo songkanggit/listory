@@ -39,7 +39,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private ViewPager mViewPager;
     private AvatarCircleView mCircleView;
     private ImageView mPlayControlImageView;
-
     private TextView mMelodyNameTV;
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
@@ -63,8 +62,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     }
     protected void initDataIgnoreUi() {
-        MusicPlayer.getInstance().bindMediaService(getApplicationContext());
-        MusicPlayer.getInstance().addConnectionCallback(this);
         PermissionUtil.verifyStoragePermissions(MainActivity.this);
         IntentFilter intentFilter = new IntentFilter(MediaService.MUSIC_CHANGE_ACTION);
         registerReceiver(mIntentReceiver, intentFilter);
@@ -88,6 +85,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mViewPager.setOffscreenPageLimit(3);
         mViewPager.setAdapter(new HomePageAdapter());
         mViewPager.setPageTransformer(true, new ScaleInTransformer());
+
+        MusicPlayer.getInstance().bindMediaService(getApplicationContext());
+        MusicPlayer.getInstance().addConnectionCallback(this);
     }
 
     @Override

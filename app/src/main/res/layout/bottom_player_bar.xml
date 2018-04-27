@@ -12,8 +12,8 @@
         android:layout_centerVertical="true"
         android:layout_alignParentBottom="true"
         android:layout_marginTop="@dimen/dp13"
-        android:paddingTop="@dimen/dp10"
-        android:paddingBottom="@dimen/dp10"
+        android:paddingTop="@dimen/dp6"
+        android:paddingBottom="@dimen/dp6"
         android:gravity="center"
         android:orientation="horizontal"
         android:background="@drawable/rectangle_with_upper_line">
@@ -30,15 +30,9 @@
 
         <ImageView
             android:id="@+id/iv_play"
-            style="@style/BottomControlButtonStyle"
-            android:src="@mipmap/bottom_player_play"
-            android:layout_marginRight="22dp" />
-
-        <ImageView
-            android:id="@+id/iv_list"
-            style="@style/BottomControlButtonStyle"
-            android:src="@mipmap/bottom_player_list"
-            android:layout_marginRight="20dp" />
+            style="@style/BottomControlButtonStyleBigger"
+            android:paddingRight="@dimen/dp4"
+            android:src="@mipmap/bottom_player_play" />
     </LinearLayout>
     <com.listory.songkang.view.AvatarCircleView
         android:id="@+id/circle_view"

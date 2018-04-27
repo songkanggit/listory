@@ -78,7 +78,7 @@ public class MediaService extends Service {
         int REPEAT_NONE = 0;
         int REPEAT_CURRENT = 1;
         int REPEAT_RANDOM = 2;
-        int REPEAT_ALL = 1;
+        int REPEAT_ALL = 3;
     }
 
     @MagicConstant(intValues = {MusicStateChange.POSITION_CHANGED})
@@ -177,98 +177,89 @@ public class MediaService extends Service {
         sendBroadcast(intent);
     }
 
-    public boolean openFile(final String path) {
+    public synchronized boolean openFile(final String path) {
         Log.d(TAG, "openFile:" + path);
-        synchronized (this) {
-            mPlayer.setDataSourceExternal(path, null);
-            if(mPlayer.isInitialized()) {
-                return true;
-            }
-            return false;
+        mPlayer.setDataSourceExternal(path, null);
+        if(mPlayer.isInitialized()) {
+            return true;
+        }
+        return false;
+    }
+
+    public synchronized void open(List<MusicTrack> musicTrackList, int position) {
+        mMusicTrackPlayList.clear();
+        mMusicTrackPlayList.addAll(musicTrackList);
+        mMusicTrackRandomPlayList = randomList(mMusicTrackPlayList);
+        mPlayPosition = 0;
+        if(position != -1) {
+            mPlayPosition = position;
+        }
+        int nextPosition = (mPlayPosition + 1) % mMusicTrackPlayList.size();
+        if(mMusicTrackPlayList.size() > 0 && mPlayPosition < mMusicTrackPlayList.size()) {
+            mPlayer.setDataSourceExternal(musicTrackList.get(mPlayPosition).mUrl, mMusicTrackPlayList.get(nextPosition).mUrl);
+            notifyChange(MusicStateChange.POSITION_CHANGED);
         }
     }
 
-    public void open(List<MusicTrack> musicTrackList, int position) {
-        synchronized (this) {
-            mMusicTrackPlayList.clear();
-            mMusicTrackPlayList.addAll(musicTrackList);
-            mMusicTrackRandomPlayList = randomList(mMusicTrackPlayList);
-            mPlayPosition = 0;
-            if(position != -1) {
-                mPlayPosition = position;
-            }
-            int nextPosition = (mPlayPosition + 1) % mMusicTrackPlayList.size();
-            if(mMusicTrackPlayList.size() > 0 && mPlayPosition < mMusicTrackPlayList.size()) {
-                mPlayer.setDataSourceExternal(musicTrackList.get(mPlayPosition).mUrl, mMusicTrackPlayList.get(nextPosition).mUrl);
-                notifyChange(MusicStateChange.POSITION_CHANGED);
-            }
-        }
-    }
-
-    public void prepareNextMusic() {
+    public synchronized void prepareNextMusic() {
         List<MusicTrack> realList = getRepeatMode() == RepeatMode.REPEAT_RANDOM ? mMusicTrackRandomPlayList : mMusicTrackPlayList;
-        synchronized (this) {
-            mPlayPosition = (++mPlayPosition) % realList.size();
-            int nextPosition = (mPlayPosition + 1) % realList.size();
-            mPlayer.setNextPlayDataSource(realList.get(nextPosition).mUrl);
-        }
+        mPlayPosition = (++mPlayPosition) % realList.size();
+        int nextPosition = (mPlayPosition + 1) % realList.size();
+        mPlayer.setNextPlayDataSource(realList.get(nextPosition).mUrl);
     }
 
-    public void play() {
+    public synchronized void play() {
         Log.d(TAG, "play");
-        synchronized (this) {
-            mIsPlaying = true;
-            int status = mAudioManager.requestAudioFocus(mAudioChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-            if(status != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                if(DEBUG) {
-                    Log.d(TAG, "Audio request focus failed.");
-                }
-                return;
+        mIsPlaying = true;
+        int status = mAudioManager.requestAudioFocus(mAudioChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        if(status != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            if(DEBUG) {
+                Log.d(TAG, "Audio request focus failed.");
             }
-            mPlayer.start();
+            return;
         }
+        mPlayer.start();
         mMusicPlayHandler.post(updateMusicProgress);
     }
 
-    public void pause() {
-        Log.d(TAG, "play");
-        synchronized (this) {
-            mIsPlaying = false;
-            if(mPlayer.isInitialized()) {
-                mPlayer.pause();
-            }
+    public synchronized void pause() {
+        Log.d(TAG, "pause");
+        mIsPlaying = false;
+        if(mPlayer.isInitialized()) {
+            mPlayer.pause();
         }
     }
 
-    public boolean isPlaying() {
+    public synchronized boolean isPlaying() {
         Log.d(TAG, "mIsPlaying" + mIsPlaying);
         return mIsPlaying;
     }
 
-    public void stop() {
-        Log.d(TAG, "stop");
+    public synchronized void stop() {
         synchronized (this) {
+            Log.d(TAG, "stop");
             if(mPlayer.isInitialized()) {
                 mPlayer.stop();
             }
         }
+        mMusicPlayHandler.removeCallbacks(updateMusicProgress);
     }
 
-    public long duration() {
+    public synchronized long duration() {
         if(mPlayer.isInitialized()) {
             return mPlayer.duration();
         }
         return 0;
     }
 
-    public long position() {
+    public synchronized long position() {
         if(mPlayer.isInitialized()) {
             return mPlayer.position();
         }
         return 0;
     }
 
-    public void seek(final long position) {
+    public synchronized void seek(final long position) {
         synchronized (this) {
             if(mPlayer.isInitialized()) {
                 mPlayer.seek(position);
@@ -276,33 +267,25 @@ public class MediaService extends Service {
         }
     }
 
-    public void goToPrevious() {
+    public synchronized void goToPrevious() {
         List<MusicTrack> realList = getRepeatMode() == RepeatMode.REPEAT_RANDOM ? mMusicTrackRandomPlayList : mMusicTrackPlayList;
-
-        synchronized (this) {
-            stop();
-            mPlayPosition = --mPlayPosition >= 0 ? mPlayPosition : realList.size()-1;
-
-            int nextPosition = (mPlayPosition + 1) % realList.size();
-            mPlayer.setDataSourceExternal(
-                    mMusicTrackPlayList.get(mPlayPosition).mUrl, mMusicTrackPlayList.get(nextPosition).mUrl);
-            play();
-            notifyChange(MusicStateChange.POSITION_CHANGED);
-        }
+        stop();
+        mPlayPosition = --mPlayPosition >= 0 ? mPlayPosition : realList.size()-1;
+        int nextPosition = (mPlayPosition + 1) % realList.size();
+        mPlayer.setDataSourceExternal(
+                mMusicTrackPlayList.get(mPlayPosition).mUrl, mMusicTrackPlayList.get(nextPosition).mUrl);
+        play();
     }
 
-    public void goToNext() {
-        synchronized (this) {
-            stop();
-            List<MusicTrack> realList = getRepeatMode() == RepeatMode.REPEAT_RANDOM ? mMusicTrackRandomPlayList : mMusicTrackPlayList;
-            mPlayPosition = ++mPlayPosition % realList.size();
+    public synchronized void goToNext() {
+        stop();
+        List<MusicTrack> realList = getRepeatMode() == RepeatMode.REPEAT_RANDOM ? mMusicTrackRandomPlayList : mMusicTrackPlayList;
+        mPlayPosition = ++mPlayPosition % realList.size();
 
-            int nextPosition = (mPlayPosition + 1) % realList.size();
-            mPlayer.setDataSourceExternal(
-                    mMusicTrackPlayList.get(mPlayPosition).mUrl, mMusicTrackPlayList.get(nextPosition).mUrl);
-            play();
-            notifyChange(MusicStateChange.POSITION_CHANGED);
-        }
+        int nextPosition = (mPlayPosition + 1) % realList.size();
+        mPlayer.setDataSourceExternal(
+                mMusicTrackPlayList.get(mPlayPosition).mUrl, mMusicTrackPlayList.get(nextPosition).mUrl);
+        play();
     }
 
     public List<MusicTrack> getMusicTrackList() {
@@ -412,6 +395,7 @@ public class MediaService extends Service {
                     if(mService.get().mIsPlaying) {
                         mCurrentPlayer.start();
                     }
+                    mService.get().notifyChange(MusicStateChange.POSITION_CHANGED);
                 } else {
                     mHandler.postDelayed(mStartMediaPlayerIfPrepared, 500);
                 }
@@ -442,6 +426,7 @@ public class MediaService extends Service {
 
         private void setMediaPlayerDataSource(@NotNull MediaPlayer player, final String path){
             if(player == mCurrentPlayer) {
+                mIsInitialized = false;
                 mIsCurrentMediaPrepared = false;
             } else if(player == mNextPlayer) {
                 mIsNextPlayerPrepared = false;
@@ -475,7 +460,6 @@ public class MediaService extends Service {
             mCurrentPlayer.reset();
             mIsInitialized = false;
             mIsCurrentMediaPrepared = false;
-            mService.get().stop();
         }
 
         public void release() {

@@ -230,9 +230,8 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
 
     private String getTimeLine(final int duration) {
         StringBuilder timeLine = new StringBuilder();
-        timeLine.setLength(0);
         timeLine.append(duration/600000);
-        timeLine.append(duration/60000);
+        timeLine.append(duration%600000/60000);
         timeLine.append(":");
         int seconds = (duration%60000)/1000;
         if(seconds < 10) {
