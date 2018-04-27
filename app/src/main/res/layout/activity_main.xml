@@ -17,6 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/colorPrimary"
+            android:gravity="center"
             android:minHeight="?attr/actionBarSize"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
@@ -27,11 +28,8 @@
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:layout_gravity="center"
-                android:gravity="center"
-                android:text="李扬故事汇"
-                android:textColor="#ffffff"
-                android:textSize="20dp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:background="@mipmap/activity_main_title_bg"/>
         </android.support.v7.widget.Toolbar>
 
         <android.support.v4.view.ViewPager

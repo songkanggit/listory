@@ -1,10 +1,13 @@
 package com.listory.songkang.activity;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.support.annotation.LayoutRes;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
@@ -14,6 +17,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -40,6 +44,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private AvatarCircleView mCircleView;
     private ImageView mPlayControlImageView;
     private TextView mMelodyNameTV;
+    private ObjectAnimator mRotateObjectAnimation;
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
@@ -86,6 +91,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mViewPager.setAdapter(new HomePageAdapter());
         mViewPager.setPageTransformer(true, new ScaleInTransformer());
 
+        mRotateObjectAnimation = ObjectAnimator.ofFloat(mCircleView, "rotation", 0f, 360.0f);
+        mRotateObjectAnimation.setDuration(6000);
+        mRotateObjectAnimation.setInterpolator(new LinearInterpolator());
+        mRotateObjectAnimation.setRepeatCount(-1);
+        mRotateObjectAnimation.setRepeatMode(ValueAnimator.RESTART);
+
         MusicPlayer.getInstance().bindMediaService(getApplicationContext());
         MusicPlayer.getInstance().addConnectionCallback(this);
     }
@@ -110,13 +121,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 startActivity(intent);
                 break;
             case R.id.iv_play:
-                if(MusicPlayer.getInstance().isPlaying()) {
-                    MusicPlayer.getInstance().pause();
-                    mPlayControlImageView.setImageResource(R.mipmap.bottom_player_play);
-                } else {
-                    MusicPlayer.getInstance().play();
-                    mPlayControlImageView.setImageResource(R.mipmap.bottom_player_pause);
-                }
+                togglePauseResume();
                 break;
         }
     }
@@ -126,9 +131,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         super.onResume();
         if(MusicPlayer.getInstance().isPlaying()) {
             mPlayControlImageView.setImageResource(R.mipmap.bottom_player_pause);
+            togglePauseResumeAnimation(true);
         } else {
             mPlayControlImageView.setImageResource(R.mipmap.bottom_player_play);
+            togglePauseResumeAnimation(false);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        togglePauseResumeAnimation(false);
     }
 
     @Override
@@ -154,6 +167,34 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     @Override
     public void onServiceDisconnected() {
 
+    }
+
+    private void togglePauseResume() {
+        if(MusicPlayer.getInstance().isPlaying()) {
+            MusicPlayer.getInstance().pause();
+            togglePauseResumeAnimation(false);
+            mPlayControlImageView.setImageResource(R.mipmap.bottom_player_play);
+        } else {
+            MusicPlayer.getInstance().play();
+            togglePauseResumeAnimation(true);
+            mPlayControlImageView.setImageResource(R.mipmap.bottom_player_pause);
+        }
+    }
+
+    private void togglePauseResumeAnimation(boolean rotate) {
+        if(rotate) {
+            if(!mRotateObjectAnimation.isStarted()) {
+                mRotateObjectAnimation.start();
+            } else {
+                if(Build.VERSION.SDK_INT > 18) {
+                    mRotateObjectAnimation.resume();
+                }
+            }
+        } else {
+            if(Build.VERSION.SDK_INT > 18) {
+                mRotateObjectAnimation.pause();
+            }
+        }
     }
 
     private class HomePageAdapter extends PagerAdapter {

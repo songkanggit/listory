@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LiStory</string>
+    <string name="app_name">李扬故事汇</string>
 
     <string name="title_activity_music_player">MusicPlayerActivity</string>
     <string name="dummy_button">Dummy Button</string>
