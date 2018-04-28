@@ -201,6 +201,8 @@ public class MediaService extends Service {
         }
     }
 
+
+
     public synchronized void prepareNextMusic() {
         List<MusicTrack> realList = getRepeatMode() == RepeatMode.REPEAT_RANDOM ? mMusicTrackRandomPlayList : mMusicTrackPlayList;
         mPlayPosition = (++mPlayPosition) % realList.size();
@@ -220,6 +222,18 @@ public class MediaService extends Service {
         }
         mPlayer.start();
         mMusicPlayHandler.post(updateMusicProgress);
+    }
+
+    public synchronized void playAt(int position) {
+        List<MusicTrack> realList = mMusicTrackPlayList;
+        if(position >= 0 && position < realList.size()) {
+            stop();
+            mPlayPosition = position;
+            int nextPosition = (mPlayPosition + 1) % realList.size();
+            mPlayer.setDataSourceExternal(
+                    mMusicTrackPlayList.get(mPlayPosition).mUrl, mMusicTrackPlayList.get(nextPosition).mUrl);
+            play();
+        }
     }
 
     public synchronized void pause() {
@@ -580,6 +594,11 @@ public class MediaService extends Service {
         @Override
         public void play() throws RemoteException {
             mServiceWeakReference.get().play();
+        }
+
+        @Override
+        public void playAt(int position) throws RemoteException {
+            mServiceWeakReference.get().playAt(position);
         }
 
         @Override

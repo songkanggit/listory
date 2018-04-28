@@ -109,7 +109,7 @@
         <ImageView
             android:id="@+id/iv_random_repeat"
             style="@style/MusicPlayerControlButtonStyle"
-            android:src="@mipmap/music_player_repeat"/>
+            android:src="@mipmap/music_player_repeat_all"/>
         <ImageView
             android:id="@+id/iv_previous"
             style="@style/MusicPlayerControlButtonStyle"

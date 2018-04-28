@@ -15,6 +15,7 @@ interface IMediaPlayerAidlInterface {
     void stop();
     void pause();
     void play();
+    void playAt(int position);
     void prev(boolean forcePrevious);
     void next();
     void enqueue(in long [] list,in Map info, int action);

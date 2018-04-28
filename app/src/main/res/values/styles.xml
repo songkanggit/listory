@@ -55,4 +55,15 @@
         <item name="android:textColor">@android:color/background_dark</item>
         <item name="android:textSize">18sp</item>
     </style>
+
+    <style name="white_bg_dialog" parent="@android:style/Theme.Dialog">
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+    <style name="transparent_dialog" parent="@android:style/Theme.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+    <style name="custom_popup_window_style">
+        <item name="android:windowEnterAnimation">@anim/popup_window_in_anim</item>
+        <item name="android:windowExitAnimation">@anim/popup_window_out_anim</item>
+    </style>
 </resources>

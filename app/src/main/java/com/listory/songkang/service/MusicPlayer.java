@@ -83,6 +83,17 @@ public class MusicPlayer {
         }
     }
 
+    public synchronized void playAt(int position) {
+        if (mService == null) {
+            return;
+        }
+        try {
+            mService.playAt(position);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
     public synchronized void pause() {
         if (mService == null) {
             return;

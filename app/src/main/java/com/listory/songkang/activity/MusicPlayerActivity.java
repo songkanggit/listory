@@ -2,17 +2,22 @@ package com.listory.songkang.activity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
 import android.support.annotation.LayoutRes;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.listory.songkang.adapter.RecyclerViewMelodyListSimpleAdapter;
 import com.listory.songkang.bean.Melody;
+import com.listory.songkang.dialog.MelodyListDialog;
 import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
@@ -23,7 +28,7 @@ import com.listory.songkang.utils.PermissionUtil;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class MusicPlayerActivity extends BaseActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
+public class MusicPlayerActivity extends BaseActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, RecyclerViewMelodyListSimpleAdapter.OnItemClickListener {
     public static final String BUNDLE_DATA = "data";
     public static final String BUNDLE_DATA_PLAY = "data_play";
 
@@ -33,8 +38,12 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
     private TextView mCurrentTime, mLastTime, mMelodyNameTV;
     private ImageView mDownloadIV, mLikeIV, mCommentIV, mShareIV;
     private ImageView mRandomIV, mPreIV, mPauseResumeIV, mNextIV, mListIV;
+    private MelodyListDialog mMelodyListDialog;
     private boolean mIsLike;
     private boolean mIsAutoPlay;
+
+    @MediaService.RepeatMode
+    private int mRepeatMode = MediaService.RepeatMode.REPEAT_ALL;
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
@@ -118,12 +127,6 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         mSeekBar.setOnSeekBarChangeListener(this);
     }
     protected void initDataAfterUiAffairs(){
-        mRootVG.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         MusicTrack musicTrack = MusicPlayer.getInstance().getCurrentMusicTrack();
         if(musicTrack != null) {
             mMusicTrack = musicTrack;
@@ -158,6 +161,9 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
             case R.id.iv_share:
                 break;
             case R.id.iv_random_repeat:
+                mRepeatMode = (mRepeatMode + 1) % 3;
+                MusicPlayer.getInstance().setRepeatMode(mRepeatMode);
+                changeRepeatMode();
                 break;
             case R.id.iv_previous:
                 if(MusicPlayer.getInstance().goToPrevious()) {
@@ -173,6 +179,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
                 }
                 break;
             case R.id.iv_list:
+                showPopWindow();
                 break;
         }
     }
@@ -194,6 +201,28 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
 
     }
 
+    @Override
+    public void onItemClick(View view, int position) {
+        MusicPlayer.getInstance().playAt(position);
+    }
+
+    private void showPopWindow() {
+        if(mMelodyListDialog == null) {
+            mMelodyListDialog = new MelodyListDialog(MusicPlayerActivity.this, MusicPlayer.getInstance().getMusicTrackList());
+            mMelodyListDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            mMelodyListDialog.setOnCancelListener(dialogInterface -> mRootVG.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION));
+        }
+        Window window = mMelodyListDialog.getWindow();
+        window.setGravity(Gravity.BOTTOM);
+        window.setWindowAnimations(R.style.custom_popup_window_style);
+        mMelodyListDialog.show();
+    }
+    
     private void enableNextAndPreviousControl(boolean enable) {
         if(enable) {
             mPreIV.setEnabled(true);
@@ -202,6 +231,21 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
             mPreIV.setEnabled(false);
             mNextIV.setEnabled(false);
         }
+    }
+
+    private void changeRepeatMode() {
+        int resId = R.mipmap.music_player_repeat_all;
+        switch (mRepeatMode) {
+            case MediaService.RepeatMode.REPEAT_RANDOM:
+                resId = R.mipmap.music_player_random;
+                break;
+            case MediaService.RepeatMode.REPEAT_CURRENT:
+                resId = R.mipmap.music_player_repeat;
+                break;
+            default:
+                break;
+        }
+        mRandomIV.setImageBitmap(BitmapFactory.decodeResource(getResources(), resId));
     }
 
     private void updateMusicUI() {
