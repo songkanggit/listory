@@ -8,6 +8,7 @@
         android:layout_marginLeft="@dimen/dp15"
         android:layout_marginRight="@dimen/dp15"
         android:layout_marginBottom="@dimen/dp10"
+        android:layout_marginTop="@dimen/dp15"
         android:scrollbars="none">
         <TextView
             android:id="@+id/iv_pager"

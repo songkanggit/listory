@@ -2,6 +2,7 @@ package com.listory.songkang.activity;
 
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.view.View;
@@ -33,6 +34,7 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
     private List<Fragment> mViewPagerData;
     private List<Melody> mMelodyList;
     private TextView mTitleText;
+    private CollapsingToolbarLayout mCollapseToolbar;
     @RealApplication.MediaContent
     private int dataType = RealApplication.MediaContent.WILL_YOUTH;
 
@@ -54,6 +56,7 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
         mBackView = fvb(R.id.toolbar_back);
         mViewPager = fvb(R.id.view_pager);
         mTitleText = fvb(R.id.tv_album_name);
+        mCollapseToolbar = fvb(R.id.collapse_toolbar);
     }
     protected void assembleViewClickAffairs(){
         mBackView.setOnClickListener(this);
@@ -65,10 +68,12 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
             mTextViewFragment.setText(R.string.will_youth_abstract);
             mAlbumCover.setImageResource(R.mipmap.will_youth_album);
             mTitleText.setText(R.string.will_youth);
+            mCollapseToolbar.setTitle(getResources().getString(R.string.will_youth));
         } else {
             mTextViewFragment.setText(R.string.mr_black_abstract);
             mAlbumCover.setImageResource(R.mipmap.mr_black_album);
             mTitleText.setText(R.string.mr_black);
+            mCollapseToolbar.setTitle(getResources().getString(R.string.will_youth));
         }
     }
 
