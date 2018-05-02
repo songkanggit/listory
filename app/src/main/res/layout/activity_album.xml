@@ -17,13 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            app:title="有志少年"
-            app:titleEnabled="false"
             app:layout_scrollFlags="scroll|enterAlways"
-            app:expandedTitleGravity="left|bottom"
-            app:collapsedTitleGravity="left"
-            app:expandedTitleTextAppearance="@style/CollapsingToolbarLayoutExpandedTextStyle"
-            android:padding="@dimen/dp0"
             app:contentScrim="@color/colorPrimary">
             <RelativeLayout
                 android:layout_width="match_parent"
