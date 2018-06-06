@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -18,7 +17,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+
 import com.listory.songkang.IMediaPlayerAidlInterface;
+import com.listory.songkang.utils.StringUtil;
 
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import tv.danmaku.ijk.media.player.IMediaPlayer;
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+
 /**
  * Created by songkang on 2018/1/14.
  */
@@ -39,27 +43,31 @@ public class MediaService extends Service {
     private static final String TAG = MediaService.class.getSimpleName();
     private static final boolean DEBUG = true;
 
-    public static final String PLAY_ACTION = "com.zealens.storytree.play";
-    public static final String PLAY_ACTION_PARAM_LIST = "com.zealens.storytree.play.param_list";
-    public static final String PLAY_ACTION_PARAM_POSITION = "com.zealens.storytree.play.param_position";
+    public static final String PLAY_ACTION = "com.liyang.songkang.play";
+    public static final String PLAY_ACTION_PARAM_LIST = "list";
+    public static final String PLAY_ACTION_PARAM_POSITION = "position";
+    public static final String PLAY_ACTION_PARAM_FORCE_UPDATE = "force";
 
-    public static final String MUSIC_CHANGE_ACTION = "com.zealens.storytree.music_change";
-    public static final String MUSIC_CHANGE_ACTION_PARAM = "com.zealens.storytree.play.music_change_param";
+    public static final String MUSIC_CHANGE_ACTION = "com.liyang.songkang.music_change";
+    public static final String MUSIC_CHANGE_ACTION_PARAM = "data";
 
-    private static final String PAUSE_ACTION = "com.zealens.storytree.pause";
-    private static final String NEXT_ACTION = "com.zealens.storytree.next";
-    private static final String PREVIOUS_ACTION = "com.zealens.storytree.previous";
-    private static final String REPEAT_PLAY_ACTION = "com.zealens.storytree.repeat_play";
-    private static final String RANDOM_PLAY_ACTION = "com.zealens.storytree.random_play";
+    public static final String PLAY_STATE_CHANGE_ACTION = "com.liyang.songkang.state_change";
+    public static final String PLAY_STATE_CHANGE_ACTION_PARAM = "state";
 
-    public static final String BUFFER_UPDATE = "com.zealens.storytree.buffer_update";
+    private static final String PAUSE_ACTION = "com.liyang.songkang.pause";
+    private static final String NEXT_ACTION = "com.liyang.songkang.next";
+    private static final String PREVIOUS_ACTION = "com.liyang.songkang.previous";
+    private static final String REPEAT_PLAY_ACTION = "com.liyang.songkang.repeat_play";
+    private static final String RANDOM_PLAY_ACTION = "com.liyang.songkang.random_play";
+
+    public static final String BUFFER_UPDATE = "com.liyang.songkang.buffer_update";
     public static final String BUFFER_UPDATE_PARAM_PERCENT = "percent";
 
-    public static final String PLAY_STATE_UPDATE = "com.zealens.storytree.play_state_update";
+    public static final String PLAY_STATE_UPDATE = "com.liyang.songkang.state_update";
     public static final String PLAY_STATE_UPDATE_POSITION = "position";
     public static final String PLAY_STATE_UPDATE_DURATION = "duration";
 
-    private IBinder mBinder = new MediaServiceStub(this);
+    private IBinder mBinder;
     private AudioManager mAudioManager;
     private MultiPlayer mPlayer;
     private boolean mIsPlaying = false;
@@ -75,17 +83,17 @@ public class MediaService extends Service {
     private int mRepeatMode = RepeatMode.REPEAT_NONE;
     @MagicConstant(intValues = {RepeatMode.REPEAT_RANDOM, RepeatMode.REPEAT_CURRENT, RepeatMode.REPEAT_NONE})
     public @interface RepeatMode {
-        int REPEAT_NONE = 0;
-        int REPEAT_CURRENT = 1;
-        int REPEAT_RANDOM = 2;
-        int REPEAT_ALL = 3;
+        int REPEAT_CURRENT = 0;
+        int REPEAT_RANDOM = 1;
+        int REPEAT_ALL = 2;
+        int REPEAT_NONE = 3;
     }
 
     @MagicConstant(intValues = {MusicStateChange.POSITION_CHANGED})
     public @interface MusicStateChange {
         int POSITION_CHANGED = 0;
+        int PLAY_STATE_CHANGE = 1;
     }
-
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
@@ -113,6 +121,9 @@ public class MediaService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         mIsServiceRunning = true;
+        if(mBinder == null || !mBinder.isBinderAlive()) {
+            mBinder = new MediaServiceStub(this);
+        }
         return mBinder;
     }
 
@@ -145,6 +156,12 @@ public class MediaService extends Service {
         mMusicPlayHandler = new MusicPlayHandler(this, mHandlerThread.getLooper());
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mIntentReceiver);
+    }
+
     private void handleBroadcastIntent(Intent intent){
         final String action = intent.getAction();
         switch (action) {
@@ -155,7 +172,6 @@ public class MediaService extends Service {
                     position = -1;
                 }
                 open(musicTrackList, position);
-//                play();
                 break;
             case PAUSE_ACTION:
                 break;
@@ -179,7 +195,9 @@ public class MediaService extends Service {
 
     public synchronized boolean openFile(final String path) {
         Log.d(TAG, "openFile:" + path);
-        mPlayer.setDataSourceExternal(path, null);
+        MusicTrack musicTrack = new MusicTrack();
+        musicTrack.mUrl = path;
+        mPlayer.setDataSourceExternal(musicTrack, null);
         if(mPlayer.isInitialized()) {
             return true;
         }
@@ -187,17 +205,49 @@ public class MediaService extends Service {
     }
 
     public synchronized void open(List<MusicTrack> musicTrackList, int position) {
-        mMusicTrackPlayList.clear();
-        mMusicTrackPlayList.addAll(musicTrackList);
-        mMusicTrackRandomPlayList = randomList(mMusicTrackPlayList);
-        mPlayPosition = 0;
-        if(position != -1) {
-            mPlayPosition = position;
+        boolean needPlayNewMusic = true;
+        if(position == -1) {
+            if(mMusicTrackPlayList.size() == 0) {
+                mMusicTrackPlayList.clear();
+                mMusicTrackPlayList.addAll(musicTrackList);
+            } else {
+                needPlayNewMusic = false;
+            }
+        } else {
+            if(musicTrackList.size() == mMusicTrackPlayList.size()) {
+                boolean isUpdateContent = false;
+                boolean isSameMelody = false;
+                if(musicTrackList.get(position).mUrl.equals(mMusicTrackPlayList.get(mPlayPosition).mUrl)) {
+                    isSameMelody = true;
+                }
+                for(int i=0; i<musicTrackList.size(); i++) {
+                    if(!musicTrackList.get(i).equals(mMusicTrackPlayList.get(i))) {
+                        isUpdateContent = true;
+                        mMusicTrackPlayList.clear();
+                        mMusicTrackPlayList.addAll(musicTrackList);
+                        break;
+                    }
+                }
+                if((!isUpdateContent || isSameMelody)&& position == mPlayPosition) {
+                    needPlayNewMusic = false;
+                }
+            } else {
+                mMusicTrackPlayList.clear();
+                mMusicTrackPlayList.addAll(musicTrackList);
+            }
         }
-        int nextPosition = (mPlayPosition + 1) % mMusicTrackPlayList.size();
-        if(mMusicTrackPlayList.size() > 0 && mPlayPosition < mMusicTrackPlayList.size()) {
-            mPlayer.setDataSourceExternal(musicTrackList.get(mPlayPosition).mUrl, mMusicTrackPlayList.get(nextPosition).mUrl);
-            notifyChange(MusicStateChange.POSITION_CHANGED);
+
+        if(needPlayNewMusic) {
+            mMusicTrackRandomPlayList = randomList(mMusicTrackPlayList);
+            mPlayPosition = 0;
+            if(position != -1) {
+                mPlayPosition = position;
+            }
+            int nextPosition = (mPlayPosition + 1) % mMusicTrackPlayList.size();
+            if(mMusicTrackPlayList.size() > 0 && mPlayPosition < mMusicTrackPlayList.size()) {
+                mPlayer.setDataSourceExternal(musicTrackList.get(mPlayPosition), mMusicTrackPlayList.get(nextPosition));
+            }
+            play();
         }
     }
 
@@ -231,7 +281,7 @@ public class MediaService extends Service {
             mPlayPosition = position;
             int nextPosition = (mPlayPosition + 1) % realList.size();
             mPlayer.setDataSourceExternal(
-                    mMusicTrackPlayList.get(mPlayPosition).mUrl, mMusicTrackPlayList.get(nextPosition).mUrl);
+                    mMusicTrackPlayList.get(mPlayPosition), mMusicTrackPlayList.get(nextPosition));
             play();
         }
     }
@@ -286,8 +336,7 @@ public class MediaService extends Service {
         stop();
         mPlayPosition = --mPlayPosition >= 0 ? mPlayPosition : realList.size()-1;
         int nextPosition = (mPlayPosition + 1) % realList.size();
-        mPlayer.setDataSourceExternal(
-                mMusicTrackPlayList.get(mPlayPosition).mUrl, mMusicTrackPlayList.get(nextPosition).mUrl);
+        mPlayer.setDataSourceExternal(realList.get(mPlayPosition), realList.get(nextPosition));
         play();
     }
 
@@ -295,11 +344,13 @@ public class MediaService extends Service {
         stop();
         List<MusicTrack> realList = getRepeatMode() == RepeatMode.REPEAT_RANDOM ? mMusicTrackRandomPlayList : mMusicTrackPlayList;
         mPlayPosition = ++mPlayPosition % realList.size();
-
         int nextPosition = (mPlayPosition + 1) % realList.size();
-        mPlayer.setDataSourceExternal(
-                mMusicTrackPlayList.get(mPlayPosition).mUrl, mMusicTrackPlayList.get(nextPosition).mUrl);
+        mPlayer.setDataSourceExternal(realList.get(mPlayPosition), realList.get(nextPosition));
         play();
+    }
+
+    public boolean isInitialized() {
+        return mPlayer.isInitialized();
     }
 
     public List<MusicTrack> getMusicTrackList() {
@@ -307,16 +358,11 @@ public class MediaService extends Service {
     }
 
     public MusicTrack getCurrentTrack() {
-        if(mMusicTrackPlayList.size() > 0 && mPlayPosition < mMusicTrackPlayList.size()) {
-            return mMusicTrackPlayList.get(mPlayPosition);
+        List<MusicTrack> realList = getRepeatMode() == RepeatMode.REPEAT_RANDOM ? mMusicTrackRandomPlayList : mMusicTrackPlayList;
+        if(realList.size() > 0 && mPlayPosition < realList.size()) {
+            return realList.get(mPlayPosition);
         }
         return null;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(mIntentReceiver);
     }
 
     public int getRepeatMode() {
@@ -336,9 +382,15 @@ public class MediaService extends Service {
             case MusicStateChange.POSITION_CHANGED:
                 Intent intent = new Intent(MUSIC_CHANGE_ACTION);
                 if(mPlayPosition < mMusicTrackPlayList.size()) {
-                    intent.putExtra(MUSIC_CHANGE_ACTION_PARAM, mMusicTrackPlayList.get(mPlayPosition));
+                    List<MusicTrack> realList = getRepeatMode() == RepeatMode.REPEAT_RANDOM ? mMusicTrackRandomPlayList : mMusicTrackPlayList;
+                    intent.putExtra(MUSIC_CHANGE_ACTION_PARAM, realList.get(mPlayPosition));
                     sendBroadcast(intent);
                 }
+                break;
+            case MusicStateChange.PLAY_STATE_CHANGE:
+                Intent intent1 = new Intent(PLAY_STATE_CHANGE_ACTION);
+                intent1.putExtra(PLAY_STATE_CHANGE_ACTION_PARAM, mIsPlaying);
+                sendBroadcast(intent1);
                 break;
         }
     }
@@ -361,9 +413,10 @@ public class MediaService extends Service {
     private static final class MusicPlayHandler extends Handler {
         public static final int MUSIC_PLAY_COMPLETE = 0;
         private final WeakReference<MediaService> mService;
+
         public MusicPlayHandler(final MediaService service, final Looper looper) {
             super(looper);
-            mService = new WeakReference<MediaService>(service);
+            mService = new WeakReference<>(service);
         }
 
         @Override
@@ -377,28 +430,27 @@ public class MediaService extends Service {
                     case MUSIC_PLAY_COMPLETE:
                         Log.d(TAG, "MUSIC_PLAY_COMPLETE");
                         if(service.getRepeatMode() == RepeatMode.REPEAT_CURRENT) {
-                            service.seek(10);
+                            service.seek(0);
                         } else {
                             service.prepareNextMusic();
                         }
                         service.play();
-                        service.notifyChange(MusicStateChange.POSITION_CHANGED);
                         break;
                 }
             }
         }
     }
 
-    private static final class MultiPlayer implements MediaPlayer.OnErrorListener,
-            MediaPlayer.OnCompletionListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnBufferingUpdateListener {
+    private static final class MultiPlayer implements IjkMediaPlayer.OnErrorListener,
+            IjkMediaPlayer.OnCompletionListener, IjkMediaPlayer.OnPreparedListener, IjkMediaPlayer.OnBufferingUpdateListener {
         private final WeakReference<MediaService> mService;
-        private MediaPlayer mCurrentPlayer = new MediaPlayer();
-        private MediaPlayer mNextPlayer;
+        private IjkMediaPlayer mCurrentPlayer = new IjkMediaPlayer();
+        private IjkMediaPlayer mNextPlayer = new IjkMediaPlayer();
         private Handler mHandler = new Handler();
 
         private boolean mIsCurrentMediaPrepared;
         private boolean mIsNextPlayerPrepared;
-        private boolean mIsInitialized;
+        private volatile boolean mIsInitialized;
 
         private Runnable mStartMediaPlayerIfPrepared = new Runnable() {
             @Override
@@ -408,8 +460,9 @@ public class MediaService extends Service {
                     mIsInitialized = true;
                     if(mService.get().mIsPlaying) {
                         mCurrentPlayer.start();
+                        mService.get().notifyChange(MusicStateChange.POSITION_CHANGED);
+                        mService.get().notifyChange(MusicStateChange.PLAY_STATE_CHANGE);
                     }
-                    mService.get().notifyChange(MusicStateChange.POSITION_CHANGED);
                 } else {
                     mHandler.postDelayed(mStartMediaPlayerIfPrepared, 500);
                 }
@@ -418,27 +471,56 @@ public class MediaService extends Service {
 
         public MultiPlayer(final MediaService service) {
             mService = new WeakReference<>(service);
-            mCurrentPlayer.setWakeMode(mService.get(), PowerManager.PARTIAL_WAKE_LOCK);
         }
 
-        public void setDataSourceExternal(@NonNull final String path, final String nextPath) {
-            setMediaPlayerDataSource(mCurrentPlayer, path);
-            if(nextPath != null) {
-                if(mNextPlayer == null) {
-                    mNextPlayer = new MediaPlayer();
+        public void setDataSourceExternal(@NonNull final MusicTrack current, final MusicTrack next) {
+            String path = current.mUrl;
+            if(!StringUtil.isEmpty(current.mLocalUrl)) {
+                path = current.mLocalUrl;
+            }
+
+            String nextPath = "";
+            if(next != null) {
+                nextPath = next.mUrl;
+                if(!StringUtil.isEmpty(next.mLocalUrl)) {
+                    nextPath = next.mLocalUrl;
                 }
+            }
+
+            boolean prepareCurrent = true, prepareNext = true;
+            if(!StringUtil.isEmpty(mNextPlayer.getDataSource()) && mNextPlayer.getDataSource().equals(path) && mIsNextPlayerPrepared) {
+                //下一首
+                mCurrentPlayer.stop();
+                mCurrentPlayer.release();
+                mCurrentPlayer = mNextPlayer;
+                mNextPlayer = new IjkMediaPlayer();
+                prepareCurrent = false;
+                mIsCurrentMediaPrepared = mIsNextPlayerPrepared;
+            } else if(!StringUtil.isEmpty(mCurrentPlayer.getDataSource()) && mCurrentPlayer.getDataSource().equals(nextPath) && mIsCurrentMediaPrepared) {
+                //上一首
+                mNextPlayer.stop();
+                mNextPlayer.release();
+                mNextPlayer = mCurrentPlayer;
+                mNextPlayer.stop();
+                mCurrentPlayer = new IjkMediaPlayer();
+                prepareNext = false;
+                mIsNextPlayerPrepared = mIsCurrentMediaPrepared;
+            }
+
+            if(prepareCurrent) {
+                setMediaPlayerDataSource(mCurrentPlayer, path);
+            }
+            if(!StringUtil.isEmpty(nextPath) && prepareNext) {
                 setMediaPlayerDataSource(mNextPlayer, nextPath);
             }
         }
 
         public void setNextPlayDataSource(@NonNull final String path) {
-            if(mNextPlayer == null) {
-                mNextPlayer = new MediaPlayer();
-            }
             setMediaPlayerDataSource(mNextPlayer, path);
         }
 
-        private void setMediaPlayerDataSource(@NotNull MediaPlayer player, final String path){
+        private void setMediaPlayerDataSource(@NotNull IjkMediaPlayer player, final String path){
+            player.setWakeMode(mService.get(), PowerManager.PARTIAL_WAKE_LOCK);
             if(player == mCurrentPlayer) {
                 mIsInitialized = false;
                 mIsCurrentMediaPrepared = false;
@@ -453,7 +535,7 @@ public class MediaService extends Service {
                 player.setOnErrorListener(this);
                 player.setOnBufferingUpdateListener(this);
                 player.setDataSource(path);
-                player.prepare();
+                player.prepareAsync();
             } catch (final IOException e) {
                 if(player == mCurrentPlayer) {
                     mIsInitialized = false;
@@ -471,7 +553,7 @@ public class MediaService extends Service {
 
         public void stop() {
             mHandler.removeCallbacks(mStartMediaPlayerIfPrepared);
-            mCurrentPlayer.reset();
+            mCurrentPlayer.stop();
             mIsInitialized = false;
             mIsCurrentMediaPrepared = false;
         }
@@ -483,11 +565,12 @@ public class MediaService extends Service {
         public void pause() {
             mHandler.removeCallbacks(mStartMediaPlayerIfPrepared);
             mCurrentPlayer.pause();
+            mService.get().notifyChange(MusicStateChange.PLAY_STATE_CHANGE);
         }
 
         public int duration() {
             if(mIsCurrentMediaPrepared) {
-                return mCurrentPlayer.getDuration();
+                return (int)mCurrentPlayer.getDuration();
             }
             return -1;
         }
@@ -514,31 +597,27 @@ public class MediaService extends Service {
         }
 
         @Override
-        public void onBufferingUpdate(MediaPlayer mp, int percent) {
-            if(mp == mCurrentPlayer) {
-                Log.d(TAG, "percent:" + percent);
-                mService.get().sendBroadcastBufferUpdate(percent);
-            }
-        }
-
-        @Override
-        public void onPrepared(MediaPlayer mp) {
+        public void onPrepared(IMediaPlayer mp) {
             Log.d(TAG, "onPrepared");
             if(mp == mCurrentPlayer) {
                 mIsCurrentMediaPrepared = true;
+                if(!mIsInitialized) {
+                    mIsInitialized = true;
+                }
             } else if (mp == mNextPlayer) {
                 mIsNextPlayerPrepared = true;
+                mNextPlayer.pause();
             }
         }
 
         @Override
-        public void onCompletion(MediaPlayer mp) {
+        public void onCompletion(IMediaPlayer mp) {
             Log.d(TAG, "onCompletion");
-            if(mp == mCurrentPlayer && mNextPlayer != null) {
-                mCurrentPlayer.release();
+            if(mp == mCurrentPlayer && mService.get().getRepeatMode() != RepeatMode.REPEAT_CURRENT) {
                 if(mIsNextPlayerPrepared) {
+                    mCurrentPlayer.stop();
+                    mCurrentPlayer.release();
                     mCurrentPlayer = mNextPlayer;
-                    mNextPlayer = null;
                     mIsNextPlayerPrepared = false;
                 }
             }
@@ -546,14 +625,21 @@ public class MediaService extends Service {
         }
 
         @Override
-        public boolean onError(MediaPlayer mp, int what, int extra) {
+        public void onBufferingUpdate(IMediaPlayer mp, int percent) {
+            if(mp == mCurrentPlayer) {
+                mService.get().sendBroadcastBufferUpdate(percent);
+            }
+        }
+
+        @Override
+        public boolean onError(IMediaPlayer mp, int what, int extra) {
             Log.d(TAG, "what:" + what + ",extra:" + extra);
             switch (what) {
-                case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
+                case IjkMediaPlayer.MEDIA_ERROR_SERVER_DIED:
                     final MediaService service = mService.get();
                     mIsInitialized = false;
                     mCurrentPlayer.release();
-                    mCurrentPlayer = new MediaPlayer();
+                    mCurrentPlayer = new IjkMediaPlayer();
                     mCurrentPlayer.setWakeMode(service, PowerManager.PARTIAL_WAKE_LOCK);
                     mHandler.removeCallbacks(mStartMediaPlayerIfPrepared);
                     return true;
@@ -565,15 +651,26 @@ public class MediaService extends Service {
     }
 
     private static final class MediaServiceStub extends IMediaPlayerAidlInterface.Stub {
-        private final WeakReference<MediaService> mServiceWeakReference;
+        private WeakReference<MediaService> mServiceWeakReference;
+
+        @Override
+        public boolean isBinderAlive() {
+            return mServiceWeakReference.get() != null;
+        }
 
         private MediaServiceStub(final MediaService service) {
             mServiceWeakReference = new WeakReference<>(service);
         }
 
+        public void setMediaService(final MediaService service) {
+            mServiceWeakReference = new WeakReference<>(service);
+        }
+
         @Override
         public void openFile(String path) throws RemoteException {
-            mServiceWeakReference.get().openFile(path);
+            if(mServiceWeakReference.get() != null) {
+                mServiceWeakReference.get().openFile(path);
+            }
         }
 
         @Override
@@ -588,27 +685,37 @@ public class MediaService extends Service {
 
         @Override
         public void pause() throws RemoteException {
-            mServiceWeakReference.get().pause();
+            if(mServiceWeakReference.get() != null) {
+                mServiceWeakReference.get().pause();
+            }
         }
 
         @Override
         public void play() throws RemoteException {
-            mServiceWeakReference.get().play();
+            if(mServiceWeakReference.get() != null) {
+                mServiceWeakReference.get().play();
+            }
         }
 
         @Override
         public void playAt(int position) throws RemoteException {
-            mServiceWeakReference.get().playAt(position);
+            if(mServiceWeakReference.get() != null) {
+                mServiceWeakReference.get().playAt(position);
+            }
         }
 
         @Override
         public void prev(boolean forcePrevious) throws RemoteException {
-            mServiceWeakReference.get().goToPrevious();
+            if(mServiceWeakReference.get() != null) {
+                mServiceWeakReference.get().goToPrevious();
+            }
         }
 
         @Override
         public void next() throws RemoteException {
-            mServiceWeakReference.get().goToNext();
+            if(mServiceWeakReference.get() != null) {
+                mServiceWeakReference.get().goToNext();
+            }
         }
 
         @Override
@@ -633,7 +740,9 @@ public class MediaService extends Service {
 
         @Override
         public void setRepeatMode(int repeatMode) throws RemoteException {
-            mServiceWeakReference.get().setRepeatMode(repeatMode);
+            if(mServiceWeakReference.get() != null) {
+                mServiceWeakReference.get().setRepeatMode(repeatMode);
+            }
         }
 
         @Override
@@ -653,7 +762,10 @@ public class MediaService extends Service {
 
         @Override
         public boolean isPlaying() throws RemoteException {
-            return mServiceWeakReference.get().isPlaying();
+            if(mServiceWeakReference.get() != null) {
+                return mServiceWeakReference.get().isPlaying();
+            }
+            return false;
         }
 
         @Override
@@ -693,12 +805,18 @@ public class MediaService extends Service {
 
         @Override
         public long duration() throws RemoteException {
-            return mServiceWeakReference.get().duration();
+            if(mServiceWeakReference.get() != null) {
+                return mServiceWeakReference.get().duration();
+            }
+            return 0;
         }
 
         @Override
         public long position() throws RemoteException {
-            return mServiceWeakReference.get().position();
+            if(mServiceWeakReference.get() != null) {
+                return mServiceWeakReference.get().position();
+            }
+            return 0;
         }
 
         @Override
@@ -708,7 +826,9 @@ public class MediaService extends Service {
 
         @Override
         public long seek(long pos) throws RemoteException {
-            mServiceWeakReference.get().seek(pos);
+            if(mServiceWeakReference.get() != null) {
+                mServiceWeakReference.get().seek(pos);
+            }
             return 0;
         }
 
@@ -724,12 +844,18 @@ public class MediaService extends Service {
 
         @Override
         public MusicTrack getCurrentTrack() throws RemoteException {
-            return mServiceWeakReference.get().getCurrentTrack();
+            if(mServiceWeakReference.get() != null) {
+                return mServiceWeakReference.get().getCurrentTrack();
+            }
+            return new MusicTrack();
         }
 
         @Override
         public List<MusicTrack> getTrackList() throws RemoteException {
-            return mServiceWeakReference.get().getMusicTrackList();
+            if(mServiceWeakReference.get() != null) {
+                return mServiceWeakReference.get().getMusicTrackList();
+            }
+            return new ArrayList<>();
         }
 
         @Override
@@ -768,7 +894,10 @@ public class MediaService extends Service {
         }
 
         @Override
-        public boolean isTrackLocal() throws RemoteException {
+        public boolean isInitialized() throws RemoteException {
+            if(mServiceWeakReference.get() != null) {
+                return mServiceWeakReference.get().isInitialized();
+            }
             return false;
         }
 
@@ -814,7 +943,10 @@ public class MediaService extends Service {
 
         @Override
         public int getRepeatMode() throws RemoteException {
-            return mServiceWeakReference.get().getRepeatMode();
+            if(mServiceWeakReference.get() != null) {
+                return mServiceWeakReference.get().getRepeatMode();
+            }
+            return RepeatMode.REPEAT_NONE;
         }
 
         @Override

@@ -8,7 +8,7 @@ public class DomainConst {
     public static final boolean USE_LOGGER = true;
     public static final String APP_ID = "wx605ca2108dd6e7d3";
 
-    public static final String DOMAIN = "https://admin.guostory.com";
+    public static final String DOMAIN = "https://admin.liyangstory.com";
 
     public static final String ACCOUNT_INFO_REEUEST = DOMAIN + "/account/query.do";
 

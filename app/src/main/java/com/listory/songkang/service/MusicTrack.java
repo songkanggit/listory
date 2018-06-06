@@ -41,7 +41,8 @@ public class MusicTrack implements Parcelable {
     };
 
     public long mId;
-    public int mSourcePosition;
+
+    public String mLocalUrl;
     /**
      * 曲目网络地址
      */
@@ -71,12 +72,11 @@ public class MusicTrack implements Parcelable {
 
     public MusicTrack() {
         mId = -1;
-        mSourcePosition = -1;
     }
 
     public MusicTrack(Parcel in) {
         mId = in.readLong();
-        mSourcePosition = in.readInt();
+        mLocalUrl = in.readString();
         mUrl = in.readString();
         mCoverImageUrl = in.readString();
         mTitle = in.readString();
@@ -93,7 +93,7 @@ public class MusicTrack implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(mId);
-        dest.writeInt(mSourcePosition);
+        dest.writeString(mLocalUrl);
         dest.writeString(mUrl);
         dest.writeString(mCoverImageUrl);
         dest.writeString(mTitle);
@@ -106,11 +106,40 @@ public class MusicTrack implements Parcelable {
     public String toString(){
         StringBuilder sb = new StringBuilder();
         sb.append("mUrl:");sb.append(mUrl);
+        sb.append("mLocalUrl:");sb.append(mLocalUrl);
         sb.append(",mCoverImageUrl:");sb.append(mCoverImageUrl);
         sb.append(",mTitle:");sb.append(mTitle);
         sb.append(",mArtist:");sb.append(mArtist);
         sb.append(",mAlbum:");sb.append(mAlbum);
         sb.append(",mFavorite:");sb.append(mFavorite);
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        MusicTrack track = (MusicTrack)obj;
+        if(this.mId != track.mId) return false;
+        if(this.mUrl != null && !this.mUrl.equals(track.mUrl) || (this.mUrl == null && track.mUrl != null)) return false;
+        if(this.mLocalUrl != null && !this.mLocalUrl.equals(track.mLocalUrl) || (this.mLocalUrl == null && track.mLocalUrl != null)) return false;
+        if(this.mCoverImageUrl != null && !this.mCoverImageUrl.equals(track.mCoverImageUrl)
+                || (this.mCoverImageUrl == null && track.mCoverImageUrl != null)) return false;
+        if(this.mTitle != null && !this.mTitle.equals(track.mTitle) || (this.mTitle == null && track.mTitle != null)) return false;
+        if(this.mAlbum != null && !this.mAlbum.equals(track.mAlbum) || (this.mAlbum == null && track.mAlbum != null)) return false;
+        if(this.mArtist != null && !this.mArtist.equals(track.mArtist) || (this.mArtist == null && track.mArtist != null)) return false;
+        if(this.mFavorite != null && !this.mFavorite.equals(track.mFavorite) || (this.mFavorite == null && track.mFavorite != null)) return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hashCode = (int)(mId^(mId >>> 32));
+        hashCode = 31*hashCode + mUrl.hashCode();
+        hashCode = 31*hashCode + mLocalUrl.hashCode();
+        hashCode = 31*hashCode + mCoverImageUrl.hashCode();
+        hashCode = 31*hashCode + mTitle.hashCode();
+        hashCode = 31*hashCode + mAlbum.hashCode();
+        hashCode = 31*hashCode + mArtist.hashCode();
+        hashCode = 31*hashCode + mFavorite.hashCode();
+        return hashCode;
     }
 }

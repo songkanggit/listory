@@ -7,7 +7,6 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-
 import com.listory.songkang.IMediaPlayerAidlInterface;
 
 import java.util.ArrayList;
@@ -24,6 +23,7 @@ public class MusicPlayer {
     private static MusicPlayer s_Instance = new MusicPlayer();
     private ServiceBinder mServiceConnection;
     private List<ConnectionState> mConnectionCallbacks;
+    private volatile boolean isServiceBinded = false;
 
     private MusicPlayer() {
         mConnectionCallbacks = new ArrayList<>();
@@ -38,7 +38,7 @@ public class MusicPlayer {
     }
 
     public synchronized void playUrl(String url) {
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return;
         }
         try {
@@ -50,7 +50,7 @@ public class MusicPlayer {
     }
 
     public synchronized void stop() {
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return;
         }
         try {
@@ -61,7 +61,7 @@ public class MusicPlayer {
     }
 
     public synchronized boolean isPlaying() {
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return false;
         }
         try {
@@ -73,7 +73,7 @@ public class MusicPlayer {
     }
 
     public synchronized void play() {
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return;
         }
         try {
@@ -84,7 +84,7 @@ public class MusicPlayer {
     }
 
     public synchronized void playAt(int position) {
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return;
         }
         try {
@@ -95,7 +95,7 @@ public class MusicPlayer {
     }
 
     public synchronized void pause() {
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return;
         }
         try {
@@ -106,7 +106,7 @@ public class MusicPlayer {
     }
 
     public synchronized void seek(final long position) {
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return;
         }
         try {
@@ -117,7 +117,7 @@ public class MusicPlayer {
     }
 
     public synchronized void setRepeatMode(@MediaService.RepeatMode int repeatMode) {
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return;
         }
         try {
@@ -130,7 +130,7 @@ public class MusicPlayer {
     @MediaService.RepeatMode
     public int getRepeatMode() {
         int repeatMode = MediaService.RepeatMode.REPEAT_NONE;
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return repeatMode;
         }
         try {
@@ -141,8 +141,22 @@ public class MusicPlayer {
         return repeatMode;
     }
 
+    public boolean isInitialized() {
+        if (!isServiceConnected()) {
+            return false;
+        }
+        try {
+            return mService.isInitialized();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean goToPrevious(){
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return false;
         }
         try {
@@ -157,7 +171,7 @@ public class MusicPlayer {
     }
 
     public boolean goToNext() {
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return false;
         }
         try {
@@ -172,7 +186,7 @@ public class MusicPlayer {
     }
 
     public List<MusicTrack> getMusicTrackList() {
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return null;
         }
         try {
@@ -184,7 +198,7 @@ public class MusicPlayer {
     }
 
     public MusicTrack getCurrentMusicTrack() {
-        if (mService == null) {
+        if (!isServiceConnected()) {
             return null;
         }
         try {
@@ -196,26 +210,30 @@ public class MusicPlayer {
     }
 
     public synchronized void bindMediaService(Context context){
-        mServiceConnection = new ServiceBinder(context);
+        if(mServiceConnection == null) {
+            mServiceConnection = new ServiceBinder();
+        }
+
         Intent intent = new Intent(context, MediaService.class);
         context.bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     public synchronized void unBindMediaService(Context context){
-        if(mServiceConnection != null)
-        context.unbindService(mServiceConnection);
+        if(mServiceConnection != null && isServiceBinded) {
+            context.unbindService(mServiceConnection);
+        }
+        mServiceConnection = null;
     }
 
     private final class ServiceBinder implements ServiceConnection {
-        private final Context mContext;
 
-        public ServiceBinder(Context context) {
-            mContext = context;
+        public ServiceBinder() {
         }
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mService = IMediaPlayerAidlInterface.Stub.asInterface(service);
+            isServiceBinded = true;
             for(ConnectionState state: mConnectionCallbacks) {
                 state.onServiceConnected();
             }
@@ -224,6 +242,7 @@ public class MusicPlayer {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mService = null;
+            isServiceBinded = false;
             for(ConnectionState state: mConnectionCallbacks) {
                 state.onServiceDisconnected();
             }
@@ -231,7 +250,15 @@ public class MusicPlayer {
     }
 
     public void addConnectionCallback(ConnectionState callback) {
-        mConnectionCallbacks.add(callback);
+        if(!mConnectionCallbacks.contains(callback)) {
+            mConnectionCallbacks.add(callback);
+        }
+    }
+
+    public void removeConnectionCallback(ConnectionState callback) {
+        if(mConnectionCallbacks.contains(callback)) {
+            mConnectionCallbacks.remove(callback);
+        }
     }
 
     public interface ConnectionState {

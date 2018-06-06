@@ -2,7 +2,6 @@ package com.listory.songkang.activity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
@@ -69,7 +68,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
                     if(musicTrack != null) {
                         mMusicTrack = musicTrack;
                     }
-                    updateMusicUI();
+                    updateMusicInfo();
                     break;
             }
         }
@@ -136,7 +135,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         if(mIsAutoPlay) {
             MusicPlayer.getInstance().play();
         }
-        updateMusicUI();
+        updateMusicInfo();
     }
 
     @Override
@@ -259,7 +258,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         mRandomIV.setImageBitmap(BitmapFactory.decodeResource(getResources(), resId));
     }
 
-    private void updateMusicUI() {
+    private void updateMusicInfo() {
         if(mMusicTrack != null) {
             mAlbumCoverIV.setImageBitmap(BitmapFactory.decodeFile(mMusicTrack.mCoverImageUrl.split(";")[0]));
             mMelodyNameTV.setText(mMusicTrack.mTitle);

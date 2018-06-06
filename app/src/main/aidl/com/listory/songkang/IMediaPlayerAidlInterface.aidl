@@ -49,7 +49,7 @@ interface IMediaPlayerAidlInterface {
     long getAlbumId();
     String getArtistName();
     String getTrackName();
-    boolean isTrackLocal();
+    boolean isInitialized();
     String getAlbumName();
     String getAlbumPath();
     String[] getAlbumPathAll();
@@ -65,3 +65,4 @@ interface IMediaPlayerAidlInterface {
     void exit();
     void timing(int time);
 }
+

@@ -107,4 +107,7 @@
     <string name="mr_black_abstract">《黑猫警长的故事》系列共18集，分为四部分。主要讲述了机智、勇敢、帅气的黑猫警长率领白猫警士们痛歼黑老鼠、打击破坏分子、吃猫鼠舅舅覆灭记、打败大老鹰等一个又一个危害森林安全的案件，令森林中的动物们过上安宁无忧的日子的故事。这些伸张正义、智斗坏人、保护人民的故事，将为孩子们带去勇敢的力量、关爱他人的品质、维护和平的信念。</string>
 
     <string name="app_close">关闭</string>
+
+    <!-- wx tips-->
+    <string name="wx_not_installed">您未安装微信客户端？</string>
 </resources>

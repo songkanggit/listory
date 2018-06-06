@@ -2,37 +2,58 @@ package com.listory.songkang.activity;
 
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.LayoutRes;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.listory.songkang.DomainConst;
+import com.listory.songkang.alipay.AlipayApi;
+import com.listory.songkang.alipay.PayResult;
 import com.listory.songkang.application.RealApplication;
 import com.listory.songkang.bean.Melody;
+import com.listory.songkang.core.http.HttpManager;
+import com.listory.songkang.core.http.HttpService;
+import com.listory.songkang.helper.WeiXinHelper;
 import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
 import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.transformer.ScaleInTransformer;
+import com.listory.songkang.utils.IPUtils;
 import com.listory.songkang.utils.PermissionUtil;
 import com.listory.songkang.view.AvatarCircleView;
+import com.tencent.mm.opensdk.modelpay.PayReq;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import static com.listory.songkang.alipay.AlipayConfig.SDK_PAY_FLAG;
 
 
 public class MainActivity extends BaseActivity implements View.OnClickListener, MusicPlayer.ConnectionState {
@@ -45,6 +66,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private ImageView mPlayControlImageView;
     private TextView mMelodyNameTV;
     private ObjectAnimator mRotateObjectAnimation;
+    private AlipayHandler mAlipayHandler;
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
@@ -63,6 +85,39 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         }
     };
 
+    private static class AlipayHandler extends Handler {
+        private WeakReference<Activity> mActivity;
+        public AlipayHandler(Activity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case SDK_PAY_FLAG: {
+                    @SuppressWarnings("unchecked")
+                    PayResult payResult = new PayResult((Map<String, String>) msg.obj);
+                    /**
+                     对于支付结果，请商户依赖服务端的异步通知结果。同步通知结果，仅作为支付结束的通知。
+                     */
+                    String resultInfo = payResult.getResult();// 同步返回需要验证的信息
+                    String resultStatus = payResult.getResultStatus();
+                    // 判断resultStatus 为9000则代表支付成功
+                    if (TextUtils.equals(resultStatus, "9000")) {
+                        // 该笔订单是否真实支付成功，需要依赖服务端的异步通知。
+                        Toast.makeText(mActivity.get(), "支付成功", Toast.LENGTH_SHORT).show();
+//                        mActivity.get().finish();
+                    } else {
+                        // 该笔订单真实的支付结果，需要依赖服务端的异步通知。
+                        Toast.makeText(mActivity.get(), "支付失败", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+    }
     protected void parseNonNullBundle(Bundle bundle){
 
     }
@@ -70,6 +125,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         PermissionUtil.verifyStoragePermissions(MainActivity.this);
         IntentFilter intentFilter = new IntentFilter(MediaService.MUSIC_CHANGE_ACTION);
         registerReceiver(mIntentReceiver, intentFilter);
+        mAlipayHandler = new AlipayHandler(MainActivity.this);
     }
     @LayoutRes
     protected int getLayoutResourceId() { return R.layout.activity_main;}
@@ -115,10 +171,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.circle_view:
-                Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
-                intent.putExtra(MusicPlayerActivity.BUNDLE_DATA, ((RealApplication)getApplication()).getMelodyContent(RealApplication.MediaContent.WILL_YOUTH).get(0));
-                intent.putExtra(MusicPlayerActivity.BUNDLE_DATA_PLAY, false);
-                startActivity(intent);
+//                Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
+//                intent.putExtra(MusicPlayerActivity.BUNDLE_DATA, ((RealApplication)getApplication()).getMelodyContent(RealApplication.MediaContent.WILL_YOUTH).get(0));
+//                intent.putExtra(MusicPlayerActivity.BUNDLE_DATA_PLAY, false);
+//                startActivity(intent);
+                alipayPayRequest();
                 break;
             case R.id.iv_play:
                 togglePauseResume();
@@ -274,4 +331,55 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         }
     }
 
+    private void wxPayRequest(){
+        mCoreContext.executeAsyncTask(() -> {
+            try {
+                HttpService httpService = mCoreContext.getApplicationService(HttpManager.class);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("ip", IPUtils.getIpAddress(mContext));
+                jsonObject.put("productId", "0003");
+                jsonObject.put("accountId", "19");
+                jsonObject.put("productInfo", "故事树-会员充值");
+                String response = httpService.post(DomainConst.WX_UNI_ORDER_URL, jsonObject.toString());
+                JSONObject responseObject = new JSONObject(response);
+                JSONObject json = responseObject.getJSONObject("data");
+                PayReq req = new PayReq();
+                req.appId			= json.getString("appid");
+                req.partnerId		= json.getString("partnerid");
+                req.prepayId		= json.getString("prepayid");
+                req.nonceStr		= json.getString("noncestr");
+                req.timeStamp		= json.getString("timestamp");
+                req.packageValue	= json.getString("package");
+                req.sign			= json.getString("sign");
+                req.extData			= "app data"; // optional
+                WeiXinHelper.getInstance().wxPayReq(getApplicationContext(), req);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void alipayPayRequest() {
+        mCoreContext.executeAsyncTask(() -> {
+            try {
+                HttpService httpService = mCoreContext.getApplicationService(HttpManager.class);
+                JSONObject jsonObject = new JSONObject();
+
+                jsonObject.put("ip", IPUtils.getIpAddress(mContext));
+                jsonObject.put("productId", "0002");
+                jsonObject.put("productInfo", "故事树-会员充值");
+                jsonObject.put("accountId", "19");
+                String response = httpService.post(DomainConst.ALIPAY_ORDER_URL, jsonObject.toString());
+                JSONObject responseObject = new JSONObject(response);
+                String json = responseObject.getString("data");
+                AlipayApi.payV2(MainActivity.this,  mAlipayHandler, json);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        });
+    }
 }
