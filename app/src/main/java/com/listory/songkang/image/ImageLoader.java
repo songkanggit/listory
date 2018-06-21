@@ -44,7 +44,6 @@ public class ImageLoader {
      * @param url
      */
     public void loadImageView(ImageView mImageView, String url) {
-        mImageView.setImageResource(R.mipmap.ic_launcher_round);
         if(StringUtil.isEmpty(url)){
             return;
         }

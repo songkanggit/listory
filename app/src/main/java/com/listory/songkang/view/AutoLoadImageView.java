@@ -13,9 +13,14 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.widget.ImageView;
+
+import com.listory.songkang.utils.BitmapUtil;
+import com.listory.songkang.utils.DensityUtil;
+
+import org.jetbrains.annotations.NonNls;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,9 +32,10 @@ import java.net.URLConnection;
  * Simple implementation of {@link android.widget.ImageView} with extended features like setting an
  * image from an url and an internal file cache using the application cache directory.
  */
-public class AutoLoadImageView extends ImageView {
+public class AutoLoadImageView extends AppCompatImageView {
 
   private static final String BASE_IMAGE_NAME_CACHED = "image_";
+  private static final float DEFAULT_CORNER_RADIUS = 6;
 
   private String imageUrl = null;
   private int imagePlaceHolderResId = -1;
@@ -95,7 +101,7 @@ public class AutoLoadImageView extends ImageView {
       public void run() {
         final Bitmap bitmap = AutoLoadImageView.this.getFromCache(getFileNameFromUrl(imageUrl));
         if (bitmap != null) {
-          AutoLoadImageView.this.loadBitmap(bitmap);
+            AutoLoadImageView.this.loadBitmap(bitmap);
         } else {
           if (isThereInternetConnection()) {
             final ImageDownloader imageDownloader = new ImageDownloader();
@@ -128,7 +134,7 @@ public class AutoLoadImageView extends ImageView {
     ((Activity) getContext()).runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        AutoLoadImageView.this.setImageBitmap(bitmap);
+          AutoLoadImageView.this.setImageBitmap(BitmapUtil.getRoundRectBitmap(bitmap, DensityUtil.dip2px(getContext(), 10)));
       }
     });
   }
@@ -149,7 +155,7 @@ public class AutoLoadImageView extends ImageView {
   }
 
   /**
-   * Get a {@link android.graphics.Bitmap} from the internal cache or null if it does not exist.
+   * Get a {@link Bitmap} from the internal cache or null if it does not exist.
    *
    * @param fileName The name of the file to look for in the cache.
    * @return A valid cached bitmap, otherwise null.
@@ -168,7 +174,7 @@ public class AutoLoadImageView extends ImageView {
    * @param bitmap The bitmap to cache.
    * @param fileName The file name used for caching the bitmap.
    */
-  private void cacheBitmap(Bitmap bitmap, String fileName) {
+  private void cacheBitmap(@NonNls Bitmap bitmap, String fileName) {
     if (this.cache != null) {
       this.cache.put(bitmap, fileName);
     }
@@ -300,7 +306,7 @@ public class AutoLoadImageView extends ImageView {
      * Creates a file name from an image url
      *
      * @param fileName The image url used to build the file name.
-     * @return A {@link java.io.File} representing a unique element.
+     * @return A {@link File} representing a unique element.
      */
     private File buildFileFromFilename(String fileName) {
       String fullPath = this.cacheDir.getPath() + File.separator + fileName;
@@ -329,8 +335,8 @@ public class AutoLoadImageView extends ImageView {
       out.writeString(this.imageUrl);
     }
 
-    public static final Parcelable.Creator<SavedState> CREATOR =
-        new Parcelable.Creator<SavedState>() {
+    public static final Creator<SavedState> CREATOR =
+        new Creator<SavedState>() {
           public SavedState createFromParcel(Parcel in) {
             return new SavedState(in);
           }

@@ -1,7 +1,6 @@
 package com.listory.songkang.adapter;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,8 +8,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.listory.songkang.bean.Melody;
+import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.listory.R;
+import com.listory.songkang.view.CachedImageView;
 
 import java.util.List;
 
@@ -41,11 +41,11 @@ public class RecyclerViewMelodyListAdapter<T> extends RecyclerView.Adapter<Recyc
 
     @Override
     public void onBindViewHolder(RecyclerViewMelodyListAdapter.MyViewHolder holder, int position) {
-        Melody melody = (Melody) mDataList.get(position);
-        holder.imageView.setImageBitmap(BitmapFactory.decodeFile(melody.getIcon().split(";")[1]));
-        holder.name.setText(melody.getName());
-        holder.author.setText(melody.getAuthor());
-        if(melody.getLike().equals("1")) {
+        MelodyDetailBean melody = (MelodyDetailBean) mDataList.get(position);
+        holder.imageView.setImageUrl(melody.coverImageUrl);
+        holder.name.setText(melody.title);
+        holder.author.setText(melody.artist);
+        if(melody.favorite.equals("true")) {
             holder.like.setImageResource(R.mipmap.melody_like);
             holder.like.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -74,7 +74,7 @@ public class RecyclerViewMelodyListAdapter<T> extends RecyclerView.Adapter<Recyc
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        ImageView imageView;
+        CachedImageView imageView;
         TextView name;
         TextView author;
         ImageView like;

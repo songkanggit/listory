@@ -1,5 +1,6 @@
 package com.listory.songkang.activity;
 
+import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
@@ -13,11 +14,13 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.LayoutRes;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,11 +29,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.listory.songkang.DomainConst;
+import com.joker.annotation.PermissionsDenied;
+import com.joker.annotation.PermissionsGranted;
+import com.joker.annotation.PermissionsRationale;
+import com.joker.annotation.PermissionsRequestSync;
+import com.joker.api.Permissions4M;
 import com.listory.songkang.alipay.AlipayApi;
 import com.listory.songkang.alipay.PayResult;
-import com.listory.songkang.application.RealApplication;
-import com.listory.songkang.bean.Melody;
+import com.listory.songkang.bean.AlbumDetailBean;
+import com.listory.songkang.bean.BannerItemBean;
+import com.listory.songkang.bean.HttpResponseBean;
+import com.listory.songkang.constant.DomainConst;
+import com.listory.songkang.constant.PermissionConstants;
+import com.listory.songkang.constant.PreferenceConst;
 import com.listory.songkang.core.http.HttpManager;
 import com.listory.songkang.core.http.HttpService;
 import com.listory.songkang.helper.WeiXinHelper;
@@ -39,11 +50,17 @@ import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
 import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.transformer.ScaleInTransformer;
+import com.listory.songkang.utils.DensityUtil;
 import com.listory.songkang.utils.IPUtils;
 import com.listory.songkang.utils.PermissionUtil;
+import com.listory.songkang.utils.StringUtil;
+import com.listory.songkang.view.AutoLoadImageView;
 import com.listory.songkang.view.AvatarCircleView;
+import com.listory.songkang.view.CachedImageView;
 import com.tencent.mm.opensdk.modelpay.PayReq;
 
+import org.intellij.lang.annotations.MagicConstant;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -55,12 +72,13 @@ import java.util.Map;
 
 import static com.listory.songkang.alipay.AlipayConfig.SDK_PAY_FLAG;
 
-
+@PermissionsRequestSync(permission = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+        value = {PermissionConstants.STORAGE_READ_CODE, PermissionConstants.STORAGE_WRITE_CODE})
 public class MainActivity extends BaseActivity implements View.OnClickListener, MusicPlayer.ConnectionState {
 
     private DrawerLayout mDrawerLayout;
-    private int[] imgRes = {R.mipmap.will_youth, R.mipmap.mr_black, R.mipmap.will_youth, R.mipmap.mr_black,
-            R.mipmap.will_youth, R.mipmap.mr_black};
+    private List<BannerItemBean> mBannerItemList;
+
     private ViewPager mViewPager;
     private AvatarCircleView mCircleView;
     private ImageView mPlayControlImageView;
@@ -68,6 +86,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private ObjectAnimator mRotateObjectAnimation;
     private AlipayHandler mAlipayHandler;
 
+    @MagicConstant(intValues = {BannerType.MELODY_TYPE, BannerType.ALBUM_TYPE, BannerType.BROWSER_TYPE})
+    public @interface BannerType {
+        int MELODY_TYPE = 0;
+        int ALBUM_TYPE = 1;
+        int BROWSER_TYPE = 2;
+    }
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -84,6 +108,29 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             }
         }
     };
+
+    //==========================================Privilege request start====================================
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[]
+            grantResults) {
+        Permissions4M.onRequestPermissionsResult(MainActivity.this, requestCode, grantResults);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    @PermissionsGranted({PermissionConstants.STORAGE_READ_CODE, PermissionConstants.STORAGE_WRITE_CODE})
+    public void syncGranted(int code) {
+    }
+
+    @PermissionsDenied({PermissionConstants.STORAGE_READ_CODE, PermissionConstants.STORAGE_WRITE_CODE})
+    public void syncDenied(int code) {
+        Toast.makeText(MainActivity.this, "授权失败", Toast.LENGTH_SHORT).show();
+    }
+
+    @PermissionsRationale({PermissionConstants.STORAGE_READ_CODE, PermissionConstants.STORAGE_WRITE_CODE})
+    public void syncRationale(int code) {
+        Toast.makeText(MainActivity.this, "请开启存储授权", Toast.LENGTH_SHORT).show();
+    }
+    //==========================================Privilege request end====================================
 
     private static class AlipayHandler extends Handler {
         private WeakReference<Activity> mActivity;
@@ -126,6 +173,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         IntentFilter intentFilter = new IntentFilter(MediaService.MUSIC_CHANGE_ACTION);
         registerReceiver(mIntentReceiver, intentFilter);
         mAlipayHandler = new AlipayHandler(MainActivity.this);
+        mBannerItemList = new ArrayList<>();
     }
     @LayoutRes
     protected int getLayoutResourceId() { return R.layout.activity_main;}
@@ -142,9 +190,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mPlayControlImageView.setOnClickListener(this);
     }
     protected void initDataAfterUiAffairs(){
+        requestBannerViewData();
         mViewPager.setPageMargin(20);
         mViewPager.setOffscreenPageLimit(3);
-        mViewPager.setAdapter(new HomePageAdapter());
+//        mViewPager.setAdapter(mHomePageAdapter = new HomePageAdapter());
         mViewPager.setPageTransformer(true, new ScaleInTransformer());
 
         mRotateObjectAnimation = ObjectAnimator.ofFloat(mCircleView, "rotation", 0f, 360.0f);
@@ -155,6 +204,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
         MusicPlayer.getInstance().bindMediaService(getApplicationContext());
         MusicPlayer.getInstance().addConnectionCallback(this);
+        Permissions4M
+                .get(MainActivity.this)
+                .requestSync();
+        setSwipeBackEnable(false);
     }
 
     @Override
@@ -171,11 +224,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.circle_view:
-//                Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
-//                intent.putExtra(MusicPlayerActivity.BUNDLE_DATA, ((RealApplication)getApplication()).getMelodyContent(RealApplication.MediaContent.WILL_YOUTH).get(0));
-//                intent.putExtra(MusicPlayerActivity.BUNDLE_DATA_PLAY, false);
-//                startActivity(intent);
-                alipayPayRequest();
+                Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
+                intent.putExtra(MusicPlayerActivity.BUNDLE_DATA_PLAY, false);
+                startActivity(intent);
+//                alipayPayRequest();
                 break;
             case R.id.iv_play:
                 togglePauseResume();
@@ -210,15 +262,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     @Override
     public void onServiceConnected() {
-        ArrayList<MusicTrack> dataList = new ArrayList<>();
-        ArrayList<Melody> melodies = ((RealApplication)getApplication()).getMelodyContent(RealApplication.MediaContent.WILL_YOUTH);
-        for(Melody bean: melodies) {
-            dataList.add(bean.convertToMusicTrack());
-        }
-        Intent broadcast = new Intent(MediaService.PLAY_ACTION);
-        broadcast.putParcelableArrayListExtra(MediaService.PLAY_ACTION_PARAM_LIST, dataList);
-        broadcast.putExtra(MediaService.PLAY_ACTION_PARAM_POSITION, 0);
-        sendBroadcast(broadcast);
+
     }
 
     @Override
@@ -258,20 +302,36 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         @Override
         public Object instantiateItem(ViewGroup container, int position)
         {
-            ImageView view = new ImageView(MainActivity.this);
+            AutoLoadImageView view = new AutoLoadImageView(MainActivity.this);
+            int pixel = DensityUtil.dip2px(mContext, 10);
+            view.setPadding(pixel, pixel, pixel, pixel);
             final int realPosition = getRealPosition(position);
-            view.setImageResource(imgRes[realPosition]);
+            view.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_banner_bg));
+            if(realPosition >= 0 && realPosition < mBannerItemList.size()) {
+                view.setImageUrl(mBannerItemList.get(realPosition).getBannerImageUrl());
+            }
             container.addView(view);
             view.setOnClickListener(v -> {
-                int contentType = RealApplication.MediaContent.WILL_YOUTH;
-                if(position%2 == 1) {
-                    contentType = RealApplication.MediaContent.MR_BLACK;
+                int pos = getRealPosition(position);
+                if(pos >= 0 && pos < mBannerItemList.size()) {
+                    JSONObject temp = (JSONObject) mBannerItemList.get(pos).getData();
+                    AlbumDetailBean bean = new AlbumDetailBean();
+                    try {
+                        bean.id = temp.getLong("id");
+                        bean.albumName = temp.getString("albumName");
+                        bean.albumCoverImage = DomainConst.DOMAIN + temp.getString("albumCoverImage");
+                        bean.albumAbstract = temp.getString("albumAbstract");
+                        bean.isPrecious = temp.getString("albumPrecious");
+                        bean.mItemTitle = bean.albumName;
+                        bean.mItemIconUrl = bean.albumCoverImage;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
+                    intent.putExtra(AlbumActivity.BUNDLE_DATA, bean);
+                    startActivity(intent);
                 }
-                ArrayList<Melody> melodies = ((RealApplication)getApplication()).getMelodyContent(contentType);
-                Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
-                intent.putParcelableArrayListExtra(AlbumActivity.BUNDLE_DATA, melodies);
-                intent.putExtra(AlbumActivity.BUNDLE_DATA_TYPE, contentType);
-                startActivity(intent);
             });
             return view;
         }
@@ -315,7 +375,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         }
 
         private int getRealCount() {
-            return imgRes.length;
+            return mBannerItemList.size() < 3 ? 3 : mBannerItemList.size();
         }
 
         private int getRealPosition(int position) {
@@ -329,6 +389,70 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         private int getLastItemPosition() {
             return Integer.MAX_VALUE / getRealCount() / 2 * getRealCount() - 1;
         }
+    }
+
+    private void requestBannerViewData() {
+        mCoreContext.executeAsyncTask(() -> {
+            int tryTimes = 3;
+            HttpResponseBean responseBean = new HttpResponseBean();
+            do {
+                try{
+                    String response = mHttpService.post(DomainConst.BANNER_VIEW_ITEM_URL, new JSONObject().toString());
+                    JSONObject responseObject = new JSONObject(response);
+                    JSONArray dataArray = responseObject.getJSONArray("data");
+                    responseBean.setState(responseObject.getBoolean("state"));
+
+                    List<BannerItemBean> tempList = new ArrayList<>();
+                    for(int i=0; i < dataArray.length(); i++) {
+                        JSONObject temp = dataArray.getJSONObject(i);
+                        BannerItemBean bean = new BannerItemBean();
+                        bean.setId(temp.getLong("id"));
+                        bean.setContentId(temp.getLong("contentId"));
+                        bean.setBannerImageUrl(DomainConst.DOMAIN + temp.getString("bannerImage"));
+                        bean.setOrderIndex(temp.getInt("orderIndex"));
+                        bean.setContentType(temp.getInt("contentType"));
+                        tempList.add(bean);
+                    }
+                    if(mBannerItemList.size() == 0 && tempList.size() > 0) {
+                        mBannerItemList.addAll(tempList);
+                    }
+
+                    runOnUiThread(() -> mViewPager.setAdapter(new HomePageAdapter()));
+
+                    int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
+                    for(BannerItemBean bean:tempList) {
+                        String requestUrl = "";
+                        switch (bean.getContentType()) {
+                            case BannerType.MELODY_TYPE:
+                            {
+                                requestUrl = DomainConst.MELODY_ITEM_URL;
+                            }
+                            break;
+                            case BannerType.ALBUM_TYPE:
+                            {
+                                requestUrl = DomainConst.ALBUM_ITEM_URL;
+                            }
+                            break;
+                        }
+                        if(!StringUtil.isEmpty(requestUrl)) {
+                            JSONObject secondParam = new JSONObject();
+                            secondParam.put("id", String.valueOf(bean.getContentId()));
+                            if(accountId != -1) {
+                                secondParam.put("accountId", String.valueOf(accountId));
+                            }
+                            String secondResponse = mHttpService.post(requestUrl, secondParam.toString());
+                            JSONObject secondObject = new JSONObject(secondResponse);
+                            JSONObject dataObject = secondObject.getJSONObject("data");
+                            bean.setData(dataObject);
+                        }
+                    }
+                } catch (JSONException e) {
+                    Log.d(TAG, e.toString());
+                } catch (IOException e) {
+                    Log.d(TAG, e.toString());
+                }
+            } while (--tryTimes > 0 && mBannerItemList.size() == 0);
+        });
     }
 
     private void wxPayRequest(){

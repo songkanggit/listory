@@ -15,7 +15,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.listory.songkang.adapter.RecyclerViewMelodyListSimpleAdapter;
-import com.listory.songkang.bean.Melody;
+import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.dialog.MelodyListDialog;
 import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MediaService;
@@ -75,7 +75,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
     };
 
     protected void parseNonNullBundle(Bundle bundle){
-        Melody melody = bundle.getParcelable(BUNDLE_DATA);
+        MelodyDetailBean melody = bundle.getParcelable(BUNDLE_DATA);
         if(melody != null) {
             mMusicTrack = melody.convertToMusicTrack();
         }

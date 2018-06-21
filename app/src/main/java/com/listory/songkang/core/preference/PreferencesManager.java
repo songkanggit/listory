@@ -3,7 +3,7 @@ package com.listory.songkang.core.preference;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.listory.songkang.DomainConst;
+import com.listory.songkang.constant.PreferenceConst;
 import com.listory.songkang.core.CoreContext;
 import com.listory.songkang.core.CoreManager;
 
@@ -24,7 +24,7 @@ public final class PreferencesManager extends CoreManager implements Preferences
     public void initialize() {
         super.initialize();
 
-        mSharedPreferences = new WeakReference<>(mContext.getSharedPreferences(DomainConst.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE));
+        mSharedPreferences = new WeakReference<>(mContext.getSharedPreferences(PreferenceConst.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE));
     }
 
     @Override
@@ -107,7 +107,7 @@ public final class PreferencesManager extends CoreManager implements Preferences
         synchronized (PreferencesManager.class) {
             if(mSharedPreferences == null || mSharedPreferences.get() == null) {
                 final Context context = mCoreContext.getApplicationContext();
-                mSharedPreferences = new WeakReference<>(context.getSharedPreferences(DomainConst.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE));
+                mSharedPreferences = new WeakReference<>(context.getSharedPreferences(PreferenceConst.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE));
             }
             return mSharedPreferences.get();
         }

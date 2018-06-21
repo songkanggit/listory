@@ -1,7 +1,7 @@
 package com.listory.songkang.core.logger;
 
 
-import com.listory.songkang.DomainConst;
+import com.listory.songkang.constant.DomainConst;
 
 public final class Logger {
 

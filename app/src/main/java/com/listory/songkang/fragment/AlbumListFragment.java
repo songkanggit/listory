@@ -1,26 +1,18 @@
 package com.listory.songkang.fragment;
 
 import android.content.Intent;
-import android.graphics.BitmapFactory;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.listory.songkang.activity.MusicPlayerActivity;
 import com.listory.songkang.adapter.RecyclerViewMelodyListAdapter;
-import com.listory.songkang.application.RealApplication;
-import com.listory.songkang.bean.Melody;
+import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicTrack;
-import com.listory.songkang.view.CachedImageView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,13 +25,11 @@ public class AlbumListFragment extends BaseFragment implements View.OnClickListe
 
     private RecyclerView mRecyclerView;
     private RecyclerViewMelodyListAdapter mContentAdapter;
-    private List<Melody> mDataList = new ArrayList<>();
+    private List<MelodyDetailBean> mDataList = new ArrayList<>();
     private LinearLayout mPlayAllLL;
-    boolean mIsLike = false;
 
-    public void setData(List<Melody> list) {
-        mDataList.clear();
-        mDataList.addAll(list);
+    public void setData(List<MelodyDetailBean> list) {
+        mDataList = list;
     }
 
     @Override
@@ -54,10 +44,10 @@ public class AlbumListFragment extends BaseFragment implements View.OnClickListe
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.addItemDecoration(new LinearLayoutItemDecoration(2, 2, getResources().getColor(R.color.colorF4F5F7)));
+        mRecyclerView.addItemDecoration(new LinearLayoutItemDecoration(0, 0, getResources().getColor(R.color.colorF4F5F7)));
         mRecyclerView.setAdapter(mContentAdapter = new RecyclerViewMelodyListAdapter(getContext(), mDataList));
         mContentAdapter.setOnItemClickListener(this);
-
+        mContentAdapter.notifyDataSetChanged();
         mPlayAllLL.setOnClickListener(this);
     }
 
@@ -69,7 +59,7 @@ public class AlbumListFragment extends BaseFragment implements View.OnClickListe
     @Override
     public void onItemClick(View view, int position) {
         ArrayList<MusicTrack> dataList = new ArrayList<>();
-        for(Melody bean: mDataList) {
+        for(MelodyDetailBean bean: mDataList) {
             dataList.add(bean.convertToMusicTrack());
         }
         Intent broadcast = new Intent(MediaService.PLAY_ACTION);
@@ -81,5 +71,11 @@ public class AlbumListFragment extends BaseFragment implements View.OnClickListe
         intent.putExtra(MusicPlayerActivity.BUNDLE_DATA, mDataList.get(position));
         intent.putExtra(MusicPlayerActivity.BUNDLE_DATA_PLAY, true);
         startActivity(intent);
+    }
+
+    public void notifyDataChange() {
+        if(mContentAdapter != null) {
+            mContentAdapter.notifyDataSetChanged();
+        }
     }
 }

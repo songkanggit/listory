@@ -1,5 +1,6 @@
 package com.listory.songkang.activity;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -10,40 +11,46 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.listory.songkang.adapter.ViewPagerAdapter;
-import com.listory.songkang.application.RealApplication;
-import com.listory.songkang.bean.Melody;
+import com.listory.songkang.bean.AlbumDetailBean;
+import com.listory.songkang.bean.MelodyDetailBean;
+import com.listory.songkang.constant.DomainConst;
 import com.listory.songkang.container.NavigationTabStrip;
 import com.listory.songkang.fragment.AlbumListFragment;
 import com.listory.songkang.fragment.TextViewFragment;
 import com.listory.songkang.listory.R;
+import com.listory.songkang.utils.StringUtil;
+import com.listory.songkang.view.CachedImageView;
 
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AlbumActivity extends BaseActivity implements View.OnClickListener {
 
     public static final String BUNDLE_DATA = "data";
-    public static final String BUNDLE_DATA_TYPE = "data_type";
     private NavigationTabStrip mNavigationTab;
     private ViewPager mViewPager;
-    private ViewPagerAdapter mPagerAdapter;
-    private ImageView mBackView, mAlbumCover;
+    private ImageView mBackView;
+    private CachedImageView mAlbumCover;
     private AlbumListFragment mAlbumListFragment;
     private TextViewFragment mTextViewFragment;
     private List<Fragment> mViewPagerData;
-    private List<Melody> mMelodyList;
+    private List<MelodyDetailBean> mMelodyList;
     private TextView mTitleText;
     private CollapsingToolbarLayout mCollapseToolbar;
-    @RealApplication.MediaContent
-    private int dataType = RealApplication.MediaContent.WILL_YOUTH;
+    private AlbumDetailBean mAlbumDetailBean;
 
     protected void parseNonNullBundle(Bundle bundle){
-        mMelodyList = bundle.getParcelableArrayList(BUNDLE_DATA);
-        dataType = bundle.getInt(BUNDLE_DATA_TYPE);
+        mAlbumDetailBean = (AlbumDetailBean) bundle.get(BUNDLE_DATA);
     }
     protected void initDataIgnoreUi() {
         mViewPagerData = new ArrayList<>();
+        mMelodyList = new ArrayList<>();
         mViewPagerData.add(mTextViewFragment = new TextViewFragment());
         mViewPagerData.add(mAlbumListFragment = new AlbumListFragment());
         mAlbumListFragment.setData(mMelodyList);
@@ -62,19 +69,15 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
         mBackView.setOnClickListener(this);
     }
     protected void initDataAfterUiAffairs(){
-        mViewPager.setAdapter(mPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), mViewPagerData));
+        requestDataList();
+        mViewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager(), mViewPagerData));
         mNavigationTab.setViewPager(mViewPager, 0);
-        if(dataType == RealApplication.MediaContent.WILL_YOUTH) {
-            mTextViewFragment.setText(R.string.will_youth_abstract);
-            mAlbumCover.setImageResource(R.mipmap.will_youth_album);
-            mTitleText.setText(R.string.will_youth);
-            mCollapseToolbar.setTitle(getResources().getString(R.string.will_youth));
-        } else {
-            mTextViewFragment.setText(R.string.mr_black_abstract);
-            mAlbumCover.setImageResource(R.mipmap.mr_black_album);
-            mTitleText.setText(R.string.mr_black);
-            mCollapseToolbar.setTitle(getResources().getString(R.string.will_youth));
-        }
+        mNavigationTab.setActiveColor(Color.parseColor("#fbc600"));
+        mNavigationTab.setInactiveColor(Color.parseColor("#333333"));
+        mTextViewFragment.setText(mAlbumDetailBean.albumAbstract);
+        mAlbumCover.setImageUrl(mAlbumDetailBean.albumCoverImage);
+        mTitleText.setText(mAlbumDetailBean.albumName);
+        mCollapseToolbar.setTitle(mAlbumDetailBean.albumName);
     }
 
     @Override
@@ -84,5 +87,55 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
                 finish();
                 break;
         }
+    }
+
+    private void requestDataList() {
+        mCoreContext.executeAsyncTask(() -> {
+            if(!StringUtil.isEmpty(mAlbumDetailBean.albumName)) {
+                try {
+                    JSONObject param = new JSONObject();
+                    param.put("melodyAlbum", mAlbumDetailBean.albumName);
+                    param.put("pageSize", "8");
+                    param.put("page", String.valueOf(1));
+                    String response = mHttpService.post(DomainConst.MELODY_LIST_URL, param.toString());
+                    JSONObject responseObject = new JSONObject(response);
+                    String code = responseObject.getString("code");
+                    if (code != null && code.equals(DomainConst.CODE_OK)) {
+                        JSONObject dataObject = responseObject.getJSONObject("data");
+                        JSONArray dataArray = dataObject.getJSONArray("melodyList");
+                        List<MelodyDetailBean> tempList = new ArrayList<>();
+                        for (int i = 0; i < dataArray.length(); i++) {
+                            JSONObject temp = dataArray.getJSONObject(i);
+                            MelodyDetailBean bean = new MelodyDetailBean();
+                            bean.id = temp.getLong("id");
+                            bean.url = DomainConst.DOMAIN + temp.getString("melodyFilePath");
+                            bean.coverImageUrl = DomainConst.DOMAIN + temp.getString("melodyCoverImage");
+                            bean.albumName = temp.getString("melodyAlbum");
+                            bean.title = temp.getString("melodyName");
+                            bean.artist = temp.getString("melodyArtist");
+                            bean.favorite = temp.getString("favorated");
+                            bean.tags = temp.getString("melodyCategory");
+                            bean.isPrecious = temp.getString("melodyPrecious");
+                            bean.mItemTitle = bean.title;
+                            bean.mItemIconUrl = bean.coverImageUrl;
+                            bean.mTags = bean.tags;
+                            bean.mPrecious = bean.isPrecious;
+                            tempList.add(bean);
+                        }
+                        runOnUiThread(() -> {
+                            if (tempList.size() > 0) {
+                                mMelodyList.clear();
+                                mMelodyList.addAll(tempList);
+                                mAlbumListFragment.notifyDataChange();
+                            }
+                        });
+                    }
+                    } catch(JSONException e){
+                        e.printStackTrace();
+                    } catch(IOException e){
+                        e.printStackTrace();
+                    }
+                }
+        });
     }
 }

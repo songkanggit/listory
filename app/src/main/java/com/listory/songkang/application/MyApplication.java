@@ -8,7 +8,6 @@ import android.os.Process;
 import android.support.annotation.NonNull;
 import android.util.SparseArray;
 
-import com.listory.songkang.bean.Melody;
 import com.listory.songkang.core.CoreApplication;
 import com.listory.songkang.core.CoreContext;
 import com.listory.songkang.core.connection.NetworkManager;
@@ -16,12 +15,8 @@ import com.listory.songkang.core.download.DownloadManager;
 import com.listory.songkang.core.http.HttpManager;
 import com.listory.songkang.core.logger.LoggerManager;
 import com.listory.songkang.core.preference.PreferencesManager;
-import com.listory.songkang.listory.R;
-import com.listory.songkang.service.MusicPlayer;
+import com.squareup.leakcanary.LeakCanary;
 
-import org.intellij.lang.annotations.MagicConstant;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -36,8 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by songkang on 2017/7/2.
  */
 
-public class RealApplication extends CoreApplication {
-    private static final String TAG = RealApplication.class.getSimpleName();
+public class MyApplication extends CoreApplication {
+    private static final String TAG = MyApplication.class.getSimpleName();
     private static final int DEFAULT_THREAD_POOL_SIZE = 4;
     private final AtomicInteger mThreadId = new AtomicInteger(1);
 
@@ -50,16 +45,6 @@ public class RealApplication extends CoreApplication {
     private static final int PROCESS_DEAMON_MAX = 20;
 
     private int mProcessType;
-
-    private String[][] mMelodys;
-    private ArrayList<Melody> mWillYouthList;
-    private ArrayList<Melody> mMrBlackList;
-
-    @MagicConstant(intValues = {MediaContent.WILL_YOUTH, MediaContent.MR_BLACK})
-    public @interface MediaContent {
-        int WILL_YOUTH = 0;
-        int MR_BLACK = 1;
-    }
 
     @Override
     public void onCreate() {
@@ -89,37 +74,11 @@ public class RealApplication extends CoreApplication {
 //
 //        mApi = WXAPIFactory.createWXAPI(this, DomainConst.APP_ID);
 //        mApi.registerApp(DomainConst.APP_ID);
-        initData();
-    }
-
-    private void initData() {
-        mWillYouthList = new ArrayList<>();
-        mMrBlackList = new ArrayList<>();
-        mMelodys = new String[4][];
-        mMelodys[0] = getResources().getStringArray(R.array.will_youth_names);
-        mMelodys[1] = getResources().getStringArray(R.array.will_youth_urls);
-        mMelodys[2] = getResources().getStringArray(R.array.will_youth_icon);
-        mMelodys[3] = getResources().getStringArray(R.array.will_youth_author);
-        for(int i=0; i<mMelodys[0].length; i++) {
-            mWillYouthList.add(new Melody(mMelodys[0][i], mMelodys[1][i], mMelodys[2][i], mMelodys[3][i]));
+        if(LeakCanary.isInAnalyzerProcess(this)) {
+            return;
         }
-        mMelodys[0] = getResources().getStringArray(R.array.mr_black_names);
-        mMelodys[1] = getResources().getStringArray(R.array.mr_black_urls);
-        mMelodys[2] = getResources().getStringArray(R.array.mr_black_icon);
-        mMelodys[3] = getResources().getStringArray(R.array.mr_black_author);
-        for(int i=0; i<mMelodys[0].length; i++) {
-            mMrBlackList.add(new Melody(mMelodys[0][i], mMelodys[1][i], mMelodys[2][i], mMelodys[3][i]));
-        }
+        LeakCanary.install(this);
     }
-
-    public ArrayList<Melody> getMelodyContent(@MediaContent int content) {
-        if(content == MediaContent.WILL_YOUTH) {
-            return mWillYouthList;
-        } else {
-            return mMrBlackList;
-        }
-    }
-
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -192,7 +151,7 @@ public class RealApplication extends CoreApplication {
 
     @Override
     protected HandlerThread onCreateWorkerThread(String poolName) {
-        return new HandlerThread(RealApplication.class.getName());
+        return new HandlerThread(MyApplication.class.getName());
     }
 
     private ExecutorService createThreadPool(int priority) {

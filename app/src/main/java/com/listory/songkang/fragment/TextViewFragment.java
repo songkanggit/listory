@@ -13,10 +13,9 @@ import com.listory.songkang.listory.R;
 public class TextViewFragment extends BaseFragment {
     private TextView mTextView;
 
-    @StringRes
-    private int mAbstractText = R.string.will_youth_abstract;
+    private String mAbstractText;
 
-    public void setText(@StringRes int text) {
+    public void setText(final String text) {
         mAbstractText = text;
     }
 

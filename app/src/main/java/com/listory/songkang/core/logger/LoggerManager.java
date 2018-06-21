@@ -3,7 +3,7 @@ package com.listory.songkang.core.logger;
 import android.os.Environment;
 import android.util.Log;
 
-import com.listory.songkang.DomainConst;
+import com.listory.songkang.constant.DomainConst;
 import com.listory.songkang.core.BaseCoreManager;
 import com.listory.songkang.core.CoreContext;
 import com.listory.songkang.utils.FileUtil;

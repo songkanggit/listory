@@ -3,14 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/dp60"
     android:background="@color/colorWhite">
-    <ImageView
+    <com.listory.songkang.view.CachedImageView
         android:id="@+id/iv_icon"
         android:layout_width="@dimen/dp60"
         android:layout_height="@dimen/dp60"
         android:layout_marginLeft="@dimen/dp10"
         android:layout_marginBottom="@dimen/dp10"
         android:layout_alignParentLeft="true"
-        android:layout_centerVertical="true"/>
+        android:layout_centerVertical="true"
+        android:src="@mipmap/default_melody_square"/>
     <TextView
         android:id="@+id/tv_name"
         android:layout_width="wrap_content"
@@ -31,6 +32,13 @@
         android:layout_marginTop="@dimen/dp10"
         android:textSize="@dimen/sp11"
         android:textColor="#666666"/>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp1"
+        android:layout_toRightOf="@id/iv_icon"
+        android:layout_marginLeft="@dimen/dp10"
+        android:layout_alignParentBottom="true"
+        android:background="@color/colorF4F5F7"/>
     <ImageView
         android:id="@+id/iv_favorite"
         style="@style/BottomControlButtonStyle"

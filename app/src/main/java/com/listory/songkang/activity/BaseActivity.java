@@ -24,13 +24,17 @@ import com.listory.songkang.core.logger.LoggerManager;
 import com.listory.songkang.core.logger.LoggerService;
 import com.listory.songkang.core.preference.PreferencesManager;
 import com.listory.songkang.listory.R;
+import com.soukou.swipeback.SwipeBackLayout;
+import com.soukou.swipeback.Utils;
+import com.soukou.swipeback.app.SwipeBackActivityBase;
+import com.soukou.swipeback.app.SwipeBackActivityHelper;
 
 
 /**
  * Created by SouKou on 2017/8/1.
  */
 
-public abstract class BaseActivity extends AppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity  implements SwipeBackActivityBase {
     protected final String TAG;
     protected CoreContext mCoreContext;
     protected Context mContext;
@@ -41,6 +45,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected HttpService mHttpService;
     protected ViewGroup mRootVG;
     protected Toolbar mToolBar;
+    private SwipeBackActivityHelper mHelper;
 
     public BaseActivity(){
         TAG = getClass().getSimpleName();
@@ -72,6 +77,9 @@ public abstract class BaseActivity extends AppCompatActivity {
         setSupportActionBar(mToolBar);
 
         viewAffairs();
+        mHelper = new SwipeBackActivityHelper(this);
+        mHelper.onActivityCreate();
+
         assembleViewClickAffairs();
         initDataAfterUiAffairs();
     }
@@ -80,6 +88,11 @@ public abstract class BaseActivity extends AppCompatActivity {
         return ((CoreApplication) getApplication()).getCoreContext();
     }
 
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        mHelper.onPostCreate();
+    }
 
     protected void parseIntent(Intent intent){
         if(intent == null) return;
@@ -94,6 +107,22 @@ public abstract class BaseActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         finish();
+    }
+
+    @Override
+    public SwipeBackLayout getSwipeBackLayout() {
+        return mHelper.getSwipeBackLayout();
+    }
+
+    @Override
+    public void setSwipeBackEnable(boolean enable) {
+        getSwipeBackLayout().setEnableGesture(enable);
+    }
+
+    @Override
+    public void scrollToFinishActivity() {
+        Utils.convertActivityToTranslucent(this);
+        getSwipeBackLayout().scrollToFinishActivity();
     }
 
     protected <V extends View> V fvb(@IdRes int id){

@@ -10,7 +10,7 @@
         android:id="@+id/app_bar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="@dimen/dp0"
+        app:elevation="@dimen/dp0"
         android:fitsSystemWindows="true">
         <android.support.design.widget.CollapsingToolbarLayout
             android:id="@+id/collapse_toolbar"
@@ -23,12 +23,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/colorWhite">
-                <ImageView
+                <com.listory.songkang.view.CachedImageView
                     android:id="@+id/iv_album"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="@dimen/dp250"
                     android:scaleType="fitXY"
-                    android:src="@mipmap/will_youth_album" />
+                    android:src="@mipmap/default_album_h_bg" />
                 <android.support.v7.widget.Toolbar
                     xmlns:android="http://schemas.android.com/apk/res/android"
                     xmlns:app="http://schemas.android.com/apk/res-auto"
