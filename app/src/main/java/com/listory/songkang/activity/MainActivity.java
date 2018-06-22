@@ -39,6 +39,7 @@ import com.listory.songkang.alipay.PayResult;
 import com.listory.songkang.bean.AlbumDetailBean;
 import com.listory.songkang.bean.BannerItemBean;
 import com.listory.songkang.bean.HttpResponseBean;
+import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.constant.DomainConst;
 import com.listory.songkang.constant.PermissionConstants;
 import com.listory.songkang.constant.PreferenceConst;
@@ -52,11 +53,9 @@ import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.transformer.ScaleInTransformer;
 import com.listory.songkang.utils.DensityUtil;
 import com.listory.songkang.utils.IPUtils;
-import com.listory.songkang.utils.PermissionUtil;
 import com.listory.songkang.utils.StringUtil;
 import com.listory.songkang.view.AutoLoadImageView;
 import com.listory.songkang.view.AvatarCircleView;
-import com.listory.songkang.view.CachedImageView;
 import com.tencent.mm.opensdk.modelpay.PayReq;
 
 import org.intellij.lang.annotations.MagicConstant;
@@ -71,6 +70,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.listory.songkang.alipay.AlipayConfig.SDK_PAY_FLAG;
+import static com.listory.songkang.service.MediaService.PLAY_ACTION_PARAM_LIST;
+import static com.listory.songkang.service.MediaService.PLAY_ACTION_PARAM_POSITION;
 
 @PermissionsRequestSync(permission = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
         value = {PermissionConstants.STORAGE_READ_CODE, PermissionConstants.STORAGE_WRITE_CODE})
@@ -85,6 +86,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private TextView mMelodyNameTV;
     private ObjectAnimator mRotateObjectAnimation;
     private AlipayHandler mAlipayHandler;
+    private MusicTrack mCurrentMusicTrack;
 
     @MagicConstant(intValues = {BannerType.MELODY_TYPE, BannerType.ALBUM_TYPE, BannerType.BROWSER_TYPE})
     public @interface BannerType {
@@ -92,18 +94,18 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         int ALBUM_TYPE = 1;
         int BROWSER_TYPE = 2;
     }
+
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             switch (action) {
-                case MediaService.MUSIC_CHANGE_ACTION:
-                    MusicTrack musicTrack = intent.getParcelableExtra(MediaService.MUSIC_CHANGE_ACTION_PARAM);
-                    if(musicTrack != null) {
-                        mCircleView.setImageBitmap(BitmapFactory.
-                                decodeFile(musicTrack.mCoverImageUrl.split(";")[1]));
-                        mMelodyNameTV.setText(musicTrack.mTitle);
+                case MediaService.PLAY_STATE_UPDATE:
+                    MusicTrack musicTrack = intent.getParcelableExtra(MediaService.PLAY_STATE_UPDATE_DATA);
+                    if(musicTrack != null && !musicTrack.equals(mCurrentMusicTrack)) {
+                        mCurrentMusicTrack = musicTrack;
                     }
+                    updatePlayInfo();
                     break;
             }
         }
@@ -169,11 +171,43 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     }
     protected void initDataIgnoreUi() {
-        PermissionUtil.verifyStoragePermissions(MainActivity.this);
-        IntentFilter intentFilter = new IntentFilter(MediaService.MUSIC_CHANGE_ACTION);
+        IntentFilter intentFilter = new IntentFilter(MediaService.PLAY_STATE_UPDATE);
         registerReceiver(mIntentReceiver, intentFilter);
         mAlipayHandler = new AlipayHandler(MainActivity.this);
         mBannerItemList = new ArrayList<>();
+
+        mCoreContext.executeAsyncTask(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject param = new JSONObject();
+                    param.put("id", "582");
+                    String response = mHttpService.post(DomainConst.MELODY_ITEM_URL, param.toString());
+                    JSONObject responseObject = new JSONObject(response);
+                    JSONObject temp = responseObject.getJSONObject("data");
+                    MelodyDetailBean bean = new MelodyDetailBean();
+                    bean.id = temp.getLong("id");
+                    bean.url = DomainConst.DOMAIN + temp.getString("melodyFilePath");
+                    bean.coverImageUrl = DomainConst.DOMAIN + temp.getString("melodyCoverImage");
+                    bean.albumName = temp.getString("melodyAlbum");
+                    bean.title = temp.getString("melodyName");
+                    bean.artist = temp.getString("melodyArtist");
+                    bean.favorite = temp.getString("favorated");
+                    bean.tags = temp.getString("melodyCategory");
+                    bean.isPrecious = temp.getString("melodyPrecious");
+                    bean.mItemTitle = bean.title;
+                    bean.mItemIconUrl = bean.coverImageUrl;
+                    bean.mTags = bean.tags;
+                    bean.mPrecious = bean.isPrecious;
+                    mCurrentMusicTrack = bean.convertToMusicTrack();
+                    runOnUiThread(() -> updatePlayInfo());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                  e.printStackTrace();
+                }
+            }
+        });
     }
     @LayoutRes
     protected int getLayoutResourceId() { return R.layout.activity_main;}
@@ -223,34 +257,23 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.circle_view:
+            case R.id.circle_view: {
+                ArrayList<MusicTrack> dataList = new ArrayList<>();
+                dataList.add(mCurrentMusicTrack);
+                Intent broadcast = new Intent(MediaService.PLAY_ACTION);
+                broadcast.putParcelableArrayListExtra(PLAY_ACTION_PARAM_LIST, dataList);
+                broadcast.putExtra(PLAY_ACTION_PARAM_POSITION, -1);
+                sendBroadcast(broadcast);
+
                 Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
                 intent.putExtra(MusicPlayerActivity.BUNDLE_DATA_PLAY, false);
                 startActivity(intent);
-//                alipayPayRequest();
+            }
                 break;
             case R.id.iv_play:
                 togglePauseResume();
                 break;
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(MusicPlayer.getInstance().isPlaying()) {
-            mPlayControlImageView.setImageResource(R.mipmap.bottom_player_pause);
-            togglePauseResumeAnimation(true);
-        } else {
-            mPlayControlImageView.setImageResource(R.mipmap.bottom_player_play);
-            togglePauseResumeAnimation(false);
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        togglePauseResumeAnimation(false);
     }
 
     @Override
@@ -273,17 +296,20 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private void togglePauseResume() {
         if(MusicPlayer.getInstance().isPlaying()) {
             MusicPlayer.getInstance().pause();
-            togglePauseResumeAnimation(false);
-            mPlayControlImageView.setImageResource(R.mipmap.bottom_player_play);
+            updatePlayInfo();
         } else {
             MusicPlayer.getInstance().play();
-            togglePauseResumeAnimation(true);
-            mPlayControlImageView.setImageResource(R.mipmap.bottom_player_pause);
+            updatePlayInfo();
         }
     }
 
-    private void togglePauseResumeAnimation(boolean rotate) {
-        if(rotate) {
+    private void updatePlayInfo() {
+        if(mCurrentMusicTrack != null) {
+            mCircleView.setImageUrl(mCurrentMusicTrack.mCoverImageUrl);
+            mMelodyNameTV.setText(mCurrentMusicTrack.mTitle);
+        }
+
+        if(MusicPlayer.getInstance().isPlaying()) {
             if(!mRotateObjectAnimation.isStarted()) {
                 mRotateObjectAnimation.start();
             } else {
@@ -291,10 +317,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     mRotateObjectAnimation.resume();
                 }
             }
+            mPlayControlImageView.setImageResource(R.mipmap.bottom_player_pause);
         } else {
+            if(!mRotateObjectAnimation.isRunning()) {
+                return;
+            }
             if(Build.VERSION.SDK_INT > 18) {
                 mRotateObjectAnimation.pause();
             }
+            mPlayControlImageView.setImageResource(R.mipmap.bottom_player_play);
         }
     }
 
@@ -310,7 +341,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             if(realPosition >= 0 && realPosition < mBannerItemList.size()) {
                 view.setImageUrl(mBannerItemList.get(realPosition).getBannerImageUrl());
             }
-            container.addView(view);
             view.setOnClickListener(v -> {
                 int pos = getRealPosition(position);
                 if(pos >= 0 && pos < mBannerItemList.size()) {
@@ -327,12 +357,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-
                     Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
                     intent.putExtra(AlbumActivity.BUNDLE_DATA, bean);
                     startActivity(intent);
                 }
             });
+            container.addView(view);
             return view;
         }
 

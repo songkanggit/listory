@@ -3,19 +3,31 @@
     android:id="@+id/contentPanel"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@mipmap/will_youth_player_bg"
     tools:context="com.listory.songkang.activity.MusicPlayerActivity">
+    <com.listory.songkang.view.CachedImageView
+        android:id="@+id/iv_play_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@mipmap/default_play_bg"/>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"/>
     <include
         android:id="@+id/toolbar"
         layout="@layout/layout_toolbar_without_right"/>
-    <ImageView
+    <com.listory.songkang.view.CachedImageView
         android:id="@+id/image_cover"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/dp290"
+        android:layout_height="@dimen/dp290"
+        android:paddingLeft="@dimen/dp20"
+        android:paddingRight="@dimen/dp20"
         android:layout_below="@id/toolbar"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="33dp"
-        android:src="@mipmap/will_youth_player_cover"/>
+        android:scaleType="fitXY"
+        android:background="@mipmap/default_play_cover"/>
     <TextView
         android:id="@+id/melody_name"
         android:layout_width="wrap_content"

@@ -31,4 +31,10 @@ public class CachedImageView extends AppCompatImageView {
             ImageLoader.getInstance().loadImageView(this, imageUrl);
         }
     }
+
+    public void setImageUrl(String imageUrl, ImageLoader.ImageDownLoadCallback callback){
+        if(!StringUtil.isEmpty(imageUrl)) {
+            ImageLoader.getInstance().loadImageView(this, imageUrl, callback);
+        }
+    }
 }

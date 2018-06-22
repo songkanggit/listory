@@ -4,7 +4,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.support.annotation.LayoutRes;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -17,11 +19,16 @@ import android.widget.TextView;
 import com.listory.songkang.adapter.RecyclerViewMelodyListSimpleAdapter;
 import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.dialog.MelodyListDialog;
+import com.listory.songkang.image.ImageLoader;
 import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
 import com.listory.songkang.service.MusicTrack;
+import com.listory.songkang.utils.BitmapUtil;
+import com.listory.songkang.utils.DensityUtil;
+import com.listory.songkang.utils.GussBlurUtil;
 import com.listory.songkang.utils.PermissionUtil;
+import com.listory.songkang.view.CachedImageView;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -31,13 +38,16 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
     public static final String BUNDLE_DATA = "data";
     public static final String BUNDLE_DATA_PLAY = "data_play";
 
-    private ImageView mBackImageView, mAlbumCoverIV;
+    private ImageView mBackImageView;
+    private CachedImageView mAlbumCoverIV;
     private SeekBar mSeekBar;
     private MusicTrack mMusicTrack;
     private TextView mCurrentTime, mLastTime, mMelodyNameTV;
     private ImageView mDownloadIV, mLikeIV, mCommentIV, mShareIV;
     private ImageView mRandomIV, mPreIV, mPauseResumeIV, mNextIV, mListIV;
     private MelodyListDialog mMelodyListDialog;
+    private CachedImageView mBackgroundImageView;
+    private Bitmap mBackgroundBitmap;
     private boolean mIsLike;
     private boolean mIsAutoPlay;
 
@@ -51,7 +61,11 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
             switch (action) {
                 case MediaService.BUFFER_UPDATE:
                     int secondProgress = intent.getIntExtra(MediaService.BUFFER_UPDATE_PARAM_PERCENT, 0);
-                    mSeekBar.setSecondaryProgress(secondProgress);
+                    int realSecondProgress = mSeekBar.getMax() / 100 * secondProgress;
+                    if (secondProgress == 99) {
+                        realSecondProgress = mSeekBar.getMax();
+                    }
+                    mSeekBar.setSecondaryProgress(realSecondProgress);
                     break;
                 case MediaService.PLAY_STATE_UPDATE:
                     int duration = intent.getIntExtra(MediaService.PLAY_STATE_UPDATE_DURATION, 0);
@@ -60,7 +74,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
                         mSeekBar.setMax(duration);
                         mSeekBar.setProgress((int)position);
                         mCurrentTime.setText(getTimeLine((int)position));
-                        mLastTime.setText(getTimeLine(duration - (int)position));
+                        mLastTime.setText(getTimeLine(duration));
                     }
                     break;
                 case MediaService.MUSIC_CHANGE_ACTION:
@@ -82,7 +96,6 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         mIsAutoPlay = bundle.getBoolean(BUNDLE_DATA_PLAY);
     }
     protected void initDataIgnoreUi() {
-        PermissionUtil.verifyStoragePermissions(MusicPlayerActivity.this);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(MediaService.BUFFER_UPDATE);
         intentFilter.addAction(MediaService.PLAY_STATE_UPDATE);
@@ -109,6 +122,8 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         mPauseResumeIV = fvb(R.id.iv_pause_resume);
         mNextIV = fvb(R.id.iv_next);
         mListIV = fvb(R.id.iv_list);
+
+        mBackgroundImageView = fvb(R.id.iv_play_background);
     }
     protected void assembleViewClickAffairs(){
         mBackImageView.setOnClickListener(this);
@@ -147,6 +162,16 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBackgroundBitmap = null;
+        if(mIntentReceiver != null) {
+            unregisterReceiver(mIntentReceiver);
+            mIntentReceiver = null;
+        }
     }
 
     @Override
@@ -260,7 +285,17 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
 
     private void updateMusicInfo() {
         if(mMusicTrack != null) {
-            mAlbumCoverIV.setImageBitmap(BitmapFactory.decodeFile(mMusicTrack.mCoverImageUrl.split(";")[0]));
+            mAlbumCoverIV.setImageUrl(mMusicTrack.mCoverImageUrl, url -> {
+                Bitmap bitmap = ((BitmapDrawable)mAlbumCoverIV.getDrawable()).getBitmap();
+                mAlbumCoverIV.setImageBitmap(BitmapUtil.getRoundRectBitmap(bitmap, DensityUtil.dip2px(getApplicationContext(), 4)));
+            });
+            mBackgroundImageView.setImageUrl(mMusicTrack.mCoverImageUrl, url -> runOnUiThread(() -> {
+                Bitmap bitmap = ((BitmapDrawable)mBackgroundImageView.getDrawable()).getBitmap();
+                if(bitmap != null) {
+                    mBackgroundBitmap = GussBlurUtil.rsBlur(MusicPlayerActivity.this, bitmap, 18, (float)0.6);
+                    mBackgroundImageView.setImageBitmap(mBackgroundBitmap);
+                }
+            }));
             mMelodyNameTV.setText(mMusicTrack.mTitle);
             mIsLike = true;
         }

@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.widget.ImageView;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -25,12 +26,22 @@ public class NetCacheUtils {
 
     /**
      * 从网络下载图片
-     * @param mImageView 显示图片的imageview
+     * @param imageView
      * @param url   下载图片的网络地址
      */
-    public void getBitmapFromNet(ImageView mImageView, String url) {
-        new BitmapTask().execute(mImageView, url);//启动AsyncTask
+    public void getBitmapFromNet(ImageView imageView, String url) {
+        //new BitmapTask().execute(mImageView, url);//启动AsyncTask
+        getBitmapFromNet(imageView, url, null);
+    }
 
+    /**
+     * 从网络下载图片
+     * @param imageView 显示图片的imageview
+     * @param url   下载图片的网络地址
+     */
+    public void getBitmapFromNet(ImageView imageView, String url, ImageLoader.ImageDownLoadCallback callback) {
+        WeakReference<ImageView> localRef = new WeakReference<>(imageView);
+        new BitmapTask().execute(localRef, url, callback);//启动AsyncTask
     }
 
     /**
@@ -40,9 +51,9 @@ public class NetCacheUtils {
      * 第三个泛型:onPostExecute的返回结果
      */
     class BitmapTask extends AsyncTask<Object, Void, Bitmap> {
-
-        private ImageView mImageView;
-        private String url;
+        private String mUrl;
+        private WeakReference<ImageView> mImageView;
+        private WeakReference<ImageLoader.ImageDownLoadCallback> mCallback;
 
         /**
          * 后台耗时操作,存在于子线程中
@@ -51,10 +62,10 @@ public class NetCacheUtils {
          */
         @Override
         protected Bitmap doInBackground(Object[] params) {
-            mImageView = (ImageView) params[0];
-            url = (String) params[1];
-
-            return downLoadBitmap(url);
+            mUrl = (String) params[1];
+            mImageView =  (WeakReference<ImageView>) params[0];
+            mCallback = new WeakReference<>((ImageLoader.ImageDownLoadCallback)params[2]);
+            return downLoadBitmap(mUrl);
         }
 
         /**
@@ -72,14 +83,15 @@ public class NetCacheUtils {
          */
         @Override
         protected void onPostExecute(Bitmap result) {
-            if (result != null) {
-                mImageView.setImageBitmap(result);
-
+            if (result != null && mImageView.get() != null) {
+                mImageView.get().setImageBitmap(result);
                 //从网络获取图片后,保存至本地缓存
-                mLocalCacheUtils.setBitmapToLocal(url, result);
+                mLocalCacheUtils.setBitmapToLocal(mUrl, result);
                 //保存至内存中
-                mMemoryCacheUtils.setBitmapToMemory(url, result);
-
+                mMemoryCacheUtils.setBitmapToMemory(mUrl, result);
+                if(mCallback.get() != null) {
+                    mCallback.get().onImageLoadComplete(mUrl);
+                }
             }
         }
     }
@@ -102,16 +114,17 @@ public class NetCacheUtils {
                 //图片压缩
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inSampleSize=2;//宽高压缩为原来的1/2
-                options.inPreferredConfig= Bitmap.Config.ARGB_4444;
+                options.inPreferredConfig=Bitmap.Config.ARGB_4444;
+
                 Bitmap bitmap = BitmapFactory.decodeStream(conn.getInputStream(),null,options);
                 return bitmap;
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            if(conn != null)
             conn.disconnect();
         }
-
         return null;
     }
 }

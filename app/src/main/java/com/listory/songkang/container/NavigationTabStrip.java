@@ -714,7 +714,6 @@ public class NavigationTabStrip extends View implements ViewPager.OnPageChangeLi
 
     @Override
     public void onPageScrolled(int position, float positionOffset, final int positionOffsetPixels) {
-        Log.d(TAG, "onPageScrolled" + position + ",positionOffset:" + positionOffset);
         if (mOnPageChangeListener != null)
             mOnPageChangeListener.onPageScrolled(position, positionOffset, positionOffsetPixels);
 

@@ -69,4 +69,47 @@ public class ImageLoader {
         Log.i(TAG,"Load form internet.");
         mNetCacheUtils.getBitmapFromNet(mImageView,url);
     }
+
+    /**
+     * 加载网络图片
+     * @param imageView
+     * @param url
+     * @param callback
+     */
+    public void loadImageView(ImageView imageView, final String url, ImageDownLoadCallback callback) {
+        if(StringUtil.isEmpty(url)){
+            return;
+        }
+        Bitmap bitmap;
+        //内存缓存
+        Log.i(TAG, "Load from memory.");
+        bitmap=mMemoryCacheUtils.getBitmapFromMemory(url);
+        if (bitmap!=null){
+            imageView.setImageBitmap(bitmap);
+            if(callback != null) {
+                callback.onImageLoadComplete(url);
+            }
+            return;
+        }
+
+        //本地缓存
+        Log.i(TAG,"Load from local.");
+        bitmap = mLocalCacheUtils.getBitmapFromLocal(url);
+        if(bitmap !=null){
+            imageView.setImageBitmap(bitmap);
+            //从本地获取图片后,保存至内存中
+            mMemoryCacheUtils.setBitmapToMemory(url,bitmap);
+            if(callback != null) {
+                callback.onImageLoadComplete(url);
+            }
+            return;
+        }
+        //网络缓存
+        Log.i(TAG,"Load form internet.");
+        mNetCacheUtils.getBitmapFromNet(imageView, url, callback);
+    }
+
+    public interface ImageDownLoadCallback {
+        void onImageLoadComplete(final String url);
+    }
 }
