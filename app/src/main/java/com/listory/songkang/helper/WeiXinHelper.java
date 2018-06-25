@@ -48,7 +48,7 @@ public class WeiXinHelper {
             WXMediaMessage msg = new WXMediaMessage(webPage);
             msg.title = sharedTitle;
             msg.description = "果果故事树";
-            Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.mipmap.default_login_logo);
+            Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.mipmap.default_logout_logo);
             Bitmap thumbBmp = Bitmap.createScaledBitmap(bmp, THUMB_SIZE, THUMB_SIZE, true);
             bmp.recycle();
             msg.thumbData = WxUtil.bmpToByteArray(thumbBmp, true);

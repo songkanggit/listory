@@ -34,7 +34,7 @@ public class QiniuImageUtil {
         String appender = "";
         switch (imageType) {
             case ImageType.ALBUM_SQUARE:
-                appender = getFixSizeSquareImageAppender(context, 122);
+                appender = getFixSizeSquareImageAppender(context, 290);
                 break;
             case ImageType.ALBUM_RECT:
                 appender = getFixSizeRectImageAppender(context, 375, 250);

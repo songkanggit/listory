@@ -27,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -89,6 +90,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private AlipayHandler mAlipayHandler;
     private MusicTrack mCurrentMusicTrack;
     private Bitmap mDefaultLoadBitMap;
+
+    private LinearLayout mFavoriteLL, mDownloadLL, mVipLL, mCouponLL, mExitLL;
 
     @MagicConstant(intValues = {BannerType.MELODY_TYPE, BannerType.ALBUM_TYPE, BannerType.BROWSER_TYPE})
     public @interface BannerType {
@@ -217,13 +220,24 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mViewPager = fvb(R.id.id_viewpager);
         mDrawerLayout = fvb(R.id.contentPanel);
         mPlayControlImageView = fvb(R.id.iv_play);
-
         mCircleView = fvb(R.id.circle_view);
         mMelodyNameTV = fvb(R.id.tv_melody_name);
+
+        mFavoriteLL = fvb(R.id.ll_favorite);
+        mDownloadLL = fvb(R.id.ll_download);
+        mVipLL = fvb(R.id.ll_vip);
+        mCouponLL = fvb(R.id.ll_coupon);
+        mExitLL = fvb(R.id.ll_exit);
     }
     protected void assembleViewClickAffairs(){
         mCircleView.setOnClickListener(this);
         mPlayControlImageView.setOnClickListener(this);
+
+        mFavoriteLL.setOnClickListener(this);
+        mDownloadLL.setOnClickListener(this);
+        mVipLL.setOnClickListener(this);
+        mCouponLL.setOnClickListener(this);
+        mExitLL.setOnClickListener(this);
     }
     protected void initDataAfterUiAffairs(){
         requestBannerViewData();
@@ -257,6 +271,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
+        if(accountId != -1) {
+            syncAccountInfoFromServer();
+        } else {
+
+        }
+    }
+
+    @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.circle_view: {
@@ -274,6 +299,25 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 break;
             case R.id.iv_play:
                 togglePauseResume();
+                break;
+            case R.id.ll_favorite:
+            {
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(intent);
+            }
+                Log.d(TAG, "ll_favorite");
+                break;
+            case R.id.ll_download:
+                Log.d(TAG, "ll_download");
+                break;
+            case R.id.ll_vip:
+                Log.d(TAG, "ll_vip");
+                break;
+            case R.id.ll_coupon:
+                Log.d(TAG, "ll_coupon");
+                break;
+            case R.id.ll_exit:
+                Log.d(TAG, "ll_exit");
                 break;
         }
     }
@@ -448,7 +492,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                         BannerItemBean bean = new BannerItemBean();
                         bean.setId(temp.getLong("id"));
                         bean.setContentId(temp.getLong("contentId"));
-                        bean.setBannerImageUrl(DomainConst.DOMAIN + temp.getString("bannerImage"));
+                        bean.setBannerImageUrl(DomainConst.PICTURE_DOMAIN + temp.getString("bannerImage"));
                         bean.setOrderIndex(temp.getInt("orderIndex"));
                         bean.setContentType(temp.getInt("contentType"));
                         tempList.add(bean);
@@ -545,5 +589,55 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 e.printStackTrace();
             }
         });
+    }
+
+    public void syncAccountInfoFromServer() {
+        mCoreContext.executeAsyncTask(() -> {
+            try {
+                int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
+                if(accountId != -1) {
+                    JSONObject param = new JSONObject();
+                    param.put("id", accountId);
+                    String response = mHttpService.post(DomainConst.ACCOUNT_INFO_URL, param.toString());
+                    JSONObject responseObject = new JSONObject(response);
+                    JSONObject accountInfo = responseObject.getJSONObject("data");
+                    saveAccountInfoToPreference(accountInfo);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void saveAccountInfoToPreference(JSONObject accountInfo) {
+        try {
+            mPreferencesManager.put(PreferenceConst.ACCOUNT_ID, accountInfo.get("id"));
+            String telephone = accountInfo.getString("telephone");
+            if(!telephone.equals("null")) {
+                mPreferencesManager.put(PreferenceConst.ACCOUNT_TELEPHONE, telephone);
+            }
+
+            String iconUrl = accountInfo.getString("icon");
+            if(!iconUrl.equals("null")) {
+                if(!iconUrl.startsWith("http")) {
+                    iconUrl = DomainConst.PICTURE_DOMAIN + iconUrl;
+                }
+                mPreferencesManager.put(PreferenceConst.ACCOUNT_ICON, iconUrl);
+            }
+
+            mPreferencesManager.put(PreferenceConst.ACCOUNT_VIP, accountInfo.get("vip"));
+            mPreferencesManager.put(PreferenceConst.ACCOUNT_NICK_NAME, accountInfo.get("nickName"));
+
+            String startTime = accountInfo.getString("vipStartTime");
+            if(!startTime.equals("null")) {
+                mPreferencesManager.put(PreferenceConst.ACCOUNT_VIP_START_TIME, accountInfo.getString("vipStartTime"));
+                mPreferencesManager.put(PreferenceConst.ACCOUNT_VIP_END_TIME, accountInfo.getString("vipEndTime"));
+            }
+            finish();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

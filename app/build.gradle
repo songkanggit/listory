@@ -54,6 +54,7 @@ dependencies {
     implementation project(':swipeback')
 }
 
+
 static def buildTime() {
     return new SimpleDateFormat("yyyyMMdd").format(new Date()).toString()
 }

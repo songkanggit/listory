@@ -26,21 +26,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
         android:theme="@style/AppTheme">
-        <activity android:name="com.listory.songkang.activity.MainActivity">
-
-        </activity>
+        <activity android:name="com.listory.songkang.activity.MainActivity"></activity>
         <activity
             android:name="com.listory.songkang.activity.MusicPlayerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:launchMode="singleInstance"
             android:label="@string/title_activity_music_player"
+            android:launchMode="singleInstance"
             android:theme="@style/FullscreenTheme" />
         <activity
             android:name="com.listory.songkang.activity.AlbumActivity"
             android:label="@string/title_activity_album" />
-        <activity android:name="com.listory.songkang.activity.TestActivity">
-
-        </activity>
+        <activity android:name="com.listory.songkang.activity.TestActivity"></activity>
         <activity android:name="com.listory.songkang.activity.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -49,8 +45,12 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.listory.songkang.service.MediaService"
-            android:process=":media"/>
+        <service
+            android:name="com.listory.songkang.service.MediaService"
+            android:process=":media" />
+
+        <activity android:name="com.listory.songkang.activity.LoginActivity"
+            android:launchMode="singleTop"></activity>
     </application>
 
 </manifest>

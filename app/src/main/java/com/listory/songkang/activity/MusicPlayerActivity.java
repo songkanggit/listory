@@ -26,6 +26,7 @@ import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.utils.BitmapUtil;
 import com.listory.songkang.utils.DensityUtil;
 import com.listory.songkang.utils.GussBlurUtil;
+import com.listory.songkang.utils.QiniuImageUtil;
 import com.listory.songkang.view.CachedImageView;
 
 /**
@@ -272,11 +273,12 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
     private void updateMusicInfo(MusicTrack musicTrack, boolean force) {
         if((musicTrack != null && !musicTrack.equals(mMusicTrack)) || force) {
             mMusicTrack = musicTrack;
-            mAlbumCoverIV.setImageUrl(mMusicTrack.mCoverImageUrl, url -> {
+            final String imageUrl = mMusicTrack.mCoverImageUrl + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.ALBUM_SQUARE);
+            mAlbumCoverIV.setImageUrl(imageUrl, url -> {
                 Bitmap bitmap = ((BitmapDrawable)mAlbumCoverIV.getDrawable()).getBitmap();
-                mAlbumCoverIV.setImageBitmap(BitmapUtil.getRoundRectBitmap(bitmap, DensityUtil.dip2px(getApplicationContext(), 4)));
+                mAlbumCoverIV.setImageBitmap(BitmapUtil.getRoundRectBitmap(bitmap, DensityUtil.dip2px(mContext, 4)));
             });
-            mBackgroundImageView.setImageUrl(mMusicTrack.mCoverImageUrl, url -> runOnUiThread(() -> {
+            mBackgroundImageView.setImageUrl(imageUrl, url -> runOnUiThread(() -> {
                 Bitmap bitmap = ((BitmapDrawable)mBackgroundImageView.getDrawable()).getBitmap();
                 if(bitmap != null) {
                     mBackgroundBitmap = GussBlurUtil.rsBlur(MusicPlayerActivity.this, bitmap, 18, (float)0.6);
