@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.listory.R;
+import com.listory.songkang.utils.QiniuImageUtil;
 import com.listory.songkang.view.CachedImageView;
 
 import java.util.List;
@@ -42,7 +43,7 @@ public class RecyclerViewMelodyListAdapter<T> extends RecyclerView.Adapter<Recyc
     @Override
     public void onBindViewHolder(RecyclerViewMelodyListAdapter.MyViewHolder holder, int position) {
         MelodyDetailBean melody = (MelodyDetailBean) mDataList.get(position);
-        holder.imageView.setImageUrl(melody.coverImageUrl);
+        holder.imageView.setImageUrl(melody.coverImageUrl + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.MELODY_SQUARE_S));
         holder.name.setText(melody.title);
         holder.author.setText(melody.artist);
         if(melody.favorite.equals("true")) {

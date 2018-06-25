@@ -19,7 +19,6 @@ import android.widget.TextView;
 import com.listory.songkang.adapter.RecyclerViewMelodyListSimpleAdapter;
 import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.dialog.MelodyListDialog;
-import com.listory.songkang.image.ImageLoader;
 import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
@@ -27,7 +26,6 @@ import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.utils.BitmapUtil;
 import com.listory.songkang.utils.DensityUtil;
 import com.listory.songkang.utils.GussBlurUtil;
-import com.listory.songkang.utils.PermissionUtil;
 import com.listory.songkang.view.CachedImageView;
 
 /**
@@ -43,12 +41,11 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
     private SeekBar mSeekBar;
     private MusicTrack mMusicTrack;
     private TextView mCurrentTime, mLastTime, mMelodyNameTV;
-    private ImageView mDownloadIV, mLikeIV, mCommentIV, mShareIV;
-    private ImageView mRandomIV, mPreIV, mPauseResumeIV, mNextIV, mListIV;
+    private ImageView mDownloadIV, mFavoriteIV, mCommentIV, mShareIV;
+    private ImageView mRepeatRandomIV, mPreIV, mPauseResumeIV, mNextIV, mListIV;
     private MelodyListDialog mMelodyListDialog;
     private CachedImageView mBackgroundImageView;
     private Bitmap mBackgroundBitmap;
-    private boolean mIsLike;
     private boolean mIsAutoPlay;
 
     @MediaService.RepeatMode
@@ -76,13 +73,10 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
                         mCurrentTime.setText(getTimeLine((int)position));
                         mLastTime.setText(getTimeLine(duration));
                     }
-                    break;
-                case MediaService.MUSIC_CHANGE_ACTION:
-                    MusicTrack musicTrack = intent.getParcelableExtra(MediaService.MUSIC_CHANGE_ACTION_PARAM);
+                    MusicTrack musicTrack = intent.getParcelableExtra(MediaService.PLAY_STATE_UPDATE_DATA);
                     if(musicTrack != null) {
-                        mMusicTrack = musicTrack;
+                        updateMusicInfo(musicTrack, false);
                     }
-                    updateMusicInfo();
                     break;
             }
         }
@@ -99,7 +93,6 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(MediaService.BUFFER_UPDATE);
         intentFilter.addAction(MediaService.PLAY_STATE_UPDATE);
-        intentFilter.addAction(MediaService.MUSIC_CHANGE_ACTION);
         registerReceiver(mIntentReceiver, intentFilter);
     }
     @LayoutRes
@@ -113,11 +106,11 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         mMelodyNameTV = fvb(R.id.melody_name);
 
         mDownloadIV = fvb(R.id.iv_download);
-        mLikeIV = fvb(R.id.iv_like);
+        mFavoriteIV = fvb(R.id.iv_like);
         mCommentIV = fvb(R.id.iv_comment);
         mShareIV = fvb(R.id.iv_share);
 
-        mRandomIV = fvb(R.id.iv_random_repeat);
+        mRepeatRandomIV = fvb(R.id.iv_random_repeat);
         mPreIV = fvb(R.id.iv_previous);
         mPauseResumeIV = fvb(R.id.iv_pause_resume);
         mNextIV = fvb(R.id.iv_next);
@@ -128,11 +121,11 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
     protected void assembleViewClickAffairs(){
         mBackImageView.setOnClickListener(this);
         mDownloadIV.setOnClickListener(this);
-        mLikeIV.setOnClickListener(this);
+        mFavoriteIV.setOnClickListener(this);
         mCommentIV.setOnClickListener(this);
         mShareIV.setOnClickListener(this);
 
-        mRandomIV.setOnClickListener(this);
+        mRepeatRandomIV.setOnClickListener(this);
         mPreIV.setOnClickListener(this);
         mPauseResumeIV.setOnClickListener(this);
         mNextIV.setOnClickListener(this);
@@ -150,7 +143,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         if(mIsAutoPlay) {
             MusicPlayer.getInstance().play();
         }
-        updateMusicInfo();
+        updateMusicInfo(mMusicTrack ,true);
     }
 
     @Override
@@ -183,13 +176,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
             case R.id.iv_download:
                 break;
             case R.id.iv_like:
-                if(mIsLike) {
-                    mIsLike = false;
-                    mLikeIV.setImageResource(R.mipmap.music_player_unlike);
-                } else {
-                    mIsLike = true;
-                    mLikeIV.setImageResource(R.mipmap.music_player_like);
-                }
+                mFavoriteIV.setImageResource(R.mipmap.music_player_unlike);
                 break;
             case R.id.iv_comment:
                 break;
@@ -259,13 +246,12 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
     }
     
     private void enableNextAndPreviousControl(boolean enable) {
-        if(enable) {
-            mPreIV.setEnabled(true);
-            mNextIV.setEnabled(true);
-        } else {
-            mPreIV.setEnabled(false);
-            mNextIV.setEnabled(false);
-        }
+        mPreIV.setEnabled(enable);
+        mNextIV.setEnabled(enable);
+        mDownloadIV.setEnabled(enable);
+        mFavoriteIV.setEnabled(enable);
+        mCommentIV.setEnabled(enable);
+        mRepeatRandomIV.setEnabled(enable);
     }
 
     private void changeRepeatMode() {
@@ -280,11 +266,12 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
             default:
                 break;
         }
-        mRandomIV.setImageBitmap(BitmapFactory.decodeResource(getResources(), resId));
+        mRepeatRandomIV.setImageBitmap(BitmapFactory.decodeResource(getResources(), resId));
     }
 
-    private void updateMusicInfo() {
-        if(mMusicTrack != null) {
+    private void updateMusicInfo(MusicTrack musicTrack, boolean force) {
+        if((musicTrack != null && !musicTrack.equals(mMusicTrack)) || force) {
+            mMusicTrack = musicTrack;
             mAlbumCoverIV.setImageUrl(mMusicTrack.mCoverImageUrl, url -> {
                 Bitmap bitmap = ((BitmapDrawable)mAlbumCoverIV.getDrawable()).getBitmap();
                 mAlbumCoverIV.setImageBitmap(BitmapUtil.getRoundRectBitmap(bitmap, DensityUtil.dip2px(getApplicationContext(), 4)));
@@ -297,24 +284,26 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
                 }
             }));
             mMelodyNameTV.setText(mMusicTrack.mTitle);
-            mIsLike = true;
         }
         if(MusicPlayer.getInstance().isPlaying()) {
             mPauseResumeIV.setImageResource(R.mipmap.music_player_pause);
         } else {
             mPauseResumeIV.setImageResource(R.mipmap.music_player_play);
         }
-        enableNextAndPreviousControl(true);
+        if(MusicPlayer.getInstance().isInitialized()) {
+            enableNextAndPreviousControl(true);
+        } else {
+            enableNextAndPreviousControl(false);
+        }
     }
 
     private void togglePlayState() {
         if(MusicPlayer.getInstance().isPlaying()) {
             MusicPlayer.getInstance().pause();
-            mPauseResumeIV.setImageResource(R.mipmap.music_player_play);
         } else {
             MusicPlayer.getInstance().play();
-            mPauseResumeIV.setImageResource(R.mipmap.music_player_pause);
         }
+        updateMusicInfo(mMusicTrack, false);
     }
 
     private String getTimeLine(final int duration) {

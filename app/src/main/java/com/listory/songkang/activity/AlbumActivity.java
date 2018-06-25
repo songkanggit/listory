@@ -1,23 +1,33 @@
 package com.listory.songkang.activity;
 
+import android.Manifest;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.joker.annotation.PermissionsDenied;
+import com.joker.annotation.PermissionsGranted;
+import com.joker.annotation.PermissionsRationale;
+import com.joker.annotation.PermissionsRequestSync;
+import com.joker.api.Permissions4M;
 import com.listory.songkang.adapter.ViewPagerAdapter;
 import com.listory.songkang.bean.AlbumDetailBean;
 import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.constant.DomainConst;
+import com.listory.songkang.constant.PermissionConstants;
 import com.listory.songkang.container.NavigationTabStrip;
 import com.listory.songkang.fragment.AlbumListFragment;
 import com.listory.songkang.fragment.TextViewFragment;
 import com.listory.songkang.listory.R;
+import com.listory.songkang.utils.QiniuImageUtil;
 import com.listory.songkang.utils.StringUtil;
 import com.listory.songkang.view.CachedImageView;
 
@@ -30,6 +40,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@PermissionsRequestSync(permission = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+        value = {PermissionConstants.STORAGE_READ_CODE, PermissionConstants.STORAGE_WRITE_CODE})
 public class AlbumActivity extends BaseActivity implements View.OnClickListener {
 
     public static final String BUNDLE_DATA = "data";
@@ -44,6 +56,29 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
     private TextView mTitleText;
     private CollapsingToolbarLayout mCollapseToolbar;
     private AlbumDetailBean mAlbumDetailBean;
+    
+    //==========================================Privilege request start====================================
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[]
+            grantResults) {
+        Permissions4M.onRequestPermissionsResult(AlbumActivity.this, requestCode, grantResults);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    @PermissionsGranted({PermissionConstants.STORAGE_READ_CODE, PermissionConstants.STORAGE_WRITE_CODE})
+    public void syncGranted(int code) {
+    }
+
+    @PermissionsDenied({PermissionConstants.STORAGE_READ_CODE, PermissionConstants.STORAGE_WRITE_CODE})
+    public void syncDenied(int code) {
+        Toast.makeText(AlbumActivity.this, "授权失败", Toast.LENGTH_SHORT).show();
+    }
+
+    @PermissionsRationale({PermissionConstants.STORAGE_READ_CODE, PermissionConstants.STORAGE_WRITE_CODE})
+    public void syncRationale(int code) {
+        Toast.makeText(AlbumActivity.this, "请开启存储授权", Toast.LENGTH_SHORT).show();
+    }
+    //==========================================Privilege request end====================================
 
     protected void parseNonNullBundle(Bundle bundle){
         mAlbumDetailBean = (AlbumDetailBean) bundle.get(BUNDLE_DATA);
@@ -75,7 +110,7 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
         mNavigationTab.setActiveColor(Color.parseColor("#fbc600"));
         mNavigationTab.setInactiveColor(Color.parseColor("#333333"));
         mTextViewFragment.setText(mAlbumDetailBean.albumAbstract);
-        mAlbumCover.setImageUrl(mAlbumDetailBean.albumCoverImage);
+        mAlbumCover.setImageUrl(mAlbumDetailBean.albumCoverImage + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.ALBUM_RECT));
         mTitleText.setText(mAlbumDetailBean.albumName);
         mCollapseToolbar.setTitle(mAlbumDetailBean.albumName);
     }
@@ -108,8 +143,8 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
                             JSONObject temp = dataArray.getJSONObject(i);
                             MelodyDetailBean bean = new MelodyDetailBean();
                             bean.id = temp.getLong("id");
-                            bean.url = DomainConst.DOMAIN + temp.getString("melodyFilePath");
-                            bean.coverImageUrl = DomainConst.DOMAIN + temp.getString("melodyCoverImage");
+                            bean.url = DomainConst.MEDIA_DOMAIN + temp.getString("melodyFilePath");
+                            bean.coverImageUrl = DomainConst.PICTURE_DOMAIN + temp.getString("melodyCoverImage");
                             bean.albumName = temp.getString("melodyAlbum");
                             bean.title = temp.getString("melodyName");
                             bean.artist = temp.getString("melodyArtist");

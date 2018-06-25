@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Handler;
@@ -53,6 +54,7 @@ import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.transformer.ScaleInTransformer;
 import com.listory.songkang.utils.DensityUtil;
 import com.listory.songkang.utils.IPUtils;
+import com.listory.songkang.utils.QiniuImageUtil;
 import com.listory.songkang.utils.StringUtil;
 import com.listory.songkang.view.AutoLoadImageView;
 import com.listory.songkang.view.AvatarCircleView;
@@ -79,7 +81,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     private DrawerLayout mDrawerLayout;
     private List<BannerItemBean> mBannerItemList;
-
     private ViewPager mViewPager;
     private AvatarCircleView mCircleView;
     private ImageView mPlayControlImageView;
@@ -87,6 +88,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private ObjectAnimator mRotateObjectAnimation;
     private AlipayHandler mAlipayHandler;
     private MusicTrack mCurrentMusicTrack;
+    private Bitmap mDefaultLoadBitMap;
 
     @MagicConstant(intValues = {BannerType.MELODY_TYPE, BannerType.ALBUM_TYPE, BannerType.BROWSER_TYPE})
     public @interface BannerType {
@@ -171,11 +173,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     }
     protected void initDataIgnoreUi() {
+        mDefaultLoadBitMap = BitmapFactory.decodeResource(getResources(), R.mipmap.default_banner_bg);
         IntentFilter intentFilter = new IntentFilter(MediaService.PLAY_STATE_UPDATE);
         registerReceiver(mIntentReceiver, intentFilter);
         mAlipayHandler = new AlipayHandler(MainActivity.this);
         mBannerItemList = new ArrayList<>();
-
         mCoreContext.executeAsyncTask(new Runnable() {
             @Override
             public void run() {
@@ -187,8 +189,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     JSONObject temp = responseObject.getJSONObject("data");
                     MelodyDetailBean bean = new MelodyDetailBean();
                     bean.id = temp.getLong("id");
-                    bean.url = DomainConst.DOMAIN + temp.getString("melodyFilePath");
-                    bean.coverImageUrl = DomainConst.DOMAIN + temp.getString("melodyCoverImage");
+                    bean.url = DomainConst.MEDIA_DOMAIN + temp.getString("melodyFilePath");
+                    bean.coverImageUrl = DomainConst.PICTURE_DOMAIN + temp.getString("melodyCoverImage");
                     bean.albumName = temp.getString("melodyAlbum");
                     bean.title = temp.getString("melodyName");
                     bean.artist = temp.getString("melodyArtist");
@@ -279,8 +281,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mIntentReceiver);
-        MusicPlayer.getInstance().unBindMediaService(getApplicationContext());
+        if(mIntentReceiver != null) {
+            unregisterReceiver(mIntentReceiver);
+            MusicPlayer.getInstance().unBindMediaService(getApplicationContext());
+        }
+        if(mDefaultLoadBitMap != null) {
+            mDefaultLoadBitMap.recycle();
+            mDefaultLoadBitMap = null;
+        }
     }
 
     @Override
@@ -305,7 +313,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     private void updatePlayInfo() {
         if(mCurrentMusicTrack != null) {
-            mCircleView.setImageUrl(mCurrentMusicTrack.mCoverImageUrl);
+            final String imageUrl = mCurrentMusicTrack.mCoverImageUrl + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.MELODY_SQUARE_S);
+            mCircleView.setImageUrl(imageUrl);
             mMelodyNameTV.setText(mCurrentMusicTrack.mTitle);
         }
 
@@ -337,9 +346,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             int pixel = DensityUtil.dip2px(mContext, 10);
             view.setPadding(pixel, pixel, pixel, pixel);
             final int realPosition = getRealPosition(position);
-            view.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_banner_bg));
+            view.setImageBitmap(mDefaultLoadBitMap);
             if(realPosition >= 0 && realPosition < mBannerItemList.size()) {
-                view.setImageUrl(mBannerItemList.get(realPosition).getBannerImageUrl());
+                final String imageUrl = mBannerItemList.get(realPosition).getBannerImageUrl() + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.BANNER);
+                Log.d(TAG, imageUrl);
+                view.setImageUrl(imageUrl);
             }
             view.setOnClickListener(v -> {
                 int pos = getRealPosition(position);
@@ -349,7 +360,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     try {
                         bean.id = temp.getLong("id");
                         bean.albumName = temp.getString("albumName");
-                        bean.albumCoverImage = DomainConst.DOMAIN + temp.getString("albumCoverImage");
+                        bean.albumCoverImage = DomainConst.PICTURE_DOMAIN + temp.getString("albumCoverImage");
                         bean.albumAbstract = temp.getString("albumAbstract");
                         bean.isPrecious = temp.getString("albumPrecious");
                         bean.mItemTitle = bean.albumName;
@@ -365,7 +376,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             container.addView(view);
             return view;
         }
-
 
         @Override
         public int getItemPosition(Object object) {

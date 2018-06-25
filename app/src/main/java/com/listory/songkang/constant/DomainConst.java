@@ -9,8 +9,8 @@ public class DomainConst {
     public static final String APP_ID = "wx605ca2108dd6e7d3";
 
     public static final String DOMAIN = "https://admin.liyangstory.com";
-    public static final String PICTURE_DOMAIN = "http://img.guostory.com";
-    public static final String MEDIA_DOMAIN = "http://video.guostory.com";
+    public static final String PICTURE_DOMAIN = "http://img.liyangstory.com";
+    public static final String MEDIA_DOMAIN = "http://video.liyangstory.com";
     public static final String DOMAIN_LOCAL = "http://10.96.155.103:8080/storytree";
 
     public static final String ACCOUNT_INFO_URL = DOMAIN + "/account/query.do";

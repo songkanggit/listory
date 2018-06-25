@@ -1,8 +1,10 @@
 package com.listory.songkang.image;
 
+import android.Manifest;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
+import android.support.annotation.RequiresPermission;
 
 import com.listory.songkang.utils.MD5Util;
 
@@ -44,6 +46,7 @@ public class LocalCacheUtils {
      * @param url
      * @param bitmap
      */
+    @RequiresPermission(allOf = {Manifest.permission.READ_EXTERNAL_STORAGE})
     public void setBitmapToLocal(String url, Bitmap bitmap){
         try {
             String fileName = MD5Util.md5String(url);//把图片的url当做文件名,并进行MD5加密
