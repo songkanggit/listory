@@ -62,7 +62,7 @@
     <style name="BottomControlButtonStyleBigger">
         <item name="android:layout_width">@dimen/dp45</item>
         <item name="android:layout_height">@dimen/dp45</item>
-        <item name="android:padding">@dimen/dp4</item>
+        <item name="android:padding">@dimen/dp12</item>
         <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
     </style>
 
@@ -80,5 +80,17 @@
     <style name="custom_popup_window_style">
         <item name="android:windowEnterAnimation">@anim/popup_window_in_anim</item>
         <item name="android:windowExitAnimation">@anim/popup_window_out_anim</item>
+    </style>
+
+    <style name="vip_money_text_view_item">
+        <item name="android:layout_width">@dimen/dp60</item>
+        <item name="android:layout_height">@dimen/dp24</item>
+        <item name="android:layout_centerInParent">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:layout_alignParentRight">true</item>
+        <item name="android:layout_marginRight">@dimen/dp10</item>
+        <item name="android:textColor">@color/colorWhite</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/rectangle_rc_fbc600</item>
     </style>
 </resources>

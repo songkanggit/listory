@@ -5,11 +5,13 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
+import com.listory.songkang.application.MyApplication;
 import com.listory.songkang.core.CoreContext;
 
 import org.jetbrains.annotations.Nullable;
+
+import java.lang.ref.WeakReference;
 
 /**
  * Created by SouKou on 2018/3/7.
@@ -17,17 +19,16 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class BaseFragment extends Fragment {
     protected View mRootView;
-    protected CoreContext mCoreContext;
-
-    public void setArguments(CoreContext context){
-        mCoreContext = context;
-    }
+    protected WeakReference<CoreContext> mCoreContextRef;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if(null == mRootView){
             mRootView = inflater.inflate(getLayoutId(), container, false);
+        }
+        if(mCoreContextRef == null) {
+            mCoreContextRef = new WeakReference<>(((MyApplication)getActivity().getApplication()).getCoreContext());
         }
         return mRootView;
     }
@@ -36,10 +37,6 @@ public abstract class BaseFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         afterCreate(savedInstanceState);
-    }
-
-    protected void showToastMessage(String message) {
-        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
     }
 
     protected abstract int getLayoutId();

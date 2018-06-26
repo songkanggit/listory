@@ -1,6 +1,7 @@
 package com.listory.songkang.activity;
 
 import android.Manifest;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
@@ -18,15 +19,20 @@ import com.joker.annotation.PermissionsGranted;
 import com.joker.annotation.PermissionsRationale;
 import com.joker.annotation.PermissionsRequestSync;
 import com.joker.api.Permissions4M;
+import com.listory.songkang.adapter.RecyclerViewMelodyListAdapter;
 import com.listory.songkang.adapter.ViewPagerAdapter;
 import com.listory.songkang.bean.AlbumDetailBean;
 import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.constant.DomainConst;
 import com.listory.songkang.constant.PermissionConstants;
+import com.listory.songkang.constant.PreferenceConst;
 import com.listory.songkang.container.NavigationTabStrip;
 import com.listory.songkang.fragment.AlbumListFragment;
 import com.listory.songkang.fragment.TextViewFragment;
+import com.listory.songkang.helper.HttpHelper;
 import com.listory.songkang.listory.R;
+import com.listory.songkang.service.MediaService;
+import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.utils.QiniuImageUtil;
 import com.listory.songkang.utils.StringUtil;
 import com.listory.songkang.view.CachedImageView;
@@ -37,12 +43,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 @PermissionsRequestSync(permission = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
         value = {PermissionConstants.STORAGE_READ_CODE, PermissionConstants.STORAGE_WRITE_CODE})
-public class AlbumActivity extends BaseActivity implements View.OnClickListener {
+public class AlbumActivity extends BaseActivity implements View.OnClickListener, RecyclerViewMelodyListAdapter.OnItemClickListener {
 
     public static final String BUNDLE_DATA = "data";
     private NavigationTabStrip mNavigationTab;
@@ -88,7 +95,7 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
         mMelodyList = new ArrayList<>();
         mViewPagerData.add(mTextViewFragment = new TextViewFragment());
         mViewPagerData.add(mAlbumListFragment = new AlbumListFragment());
-        mAlbumListFragment.setData(mMelodyList);
+        mAlbumListFragment.setData(mAlbumDetailBean);
     }
     @LayoutRes
     protected int getLayoutResourceId() { return R.layout.activity_album;}
@@ -104,7 +111,6 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
         mBackView.setOnClickListener(this);
     }
     protected void initDataAfterUiAffairs(){
-        requestDataList();
         mViewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager(), mViewPagerData));
         mNavigationTab.setViewPager(mViewPager, 0);
         mNavigationTab.setActiveColor(Color.parseColor("#fbc600"));
@@ -124,53 +130,75 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener 
         }
     }
 
-    private void requestDataList() {
-        mCoreContext.executeAsyncTask(() -> {
-            if(!StringUtil.isEmpty(mAlbumDetailBean.albumName)) {
-                try {
-                    JSONObject param = new JSONObject();
-                    param.put("melodyAlbum", mAlbumDetailBean.albumName);
-                    param.put("pageSize", "8");
-                    param.put("page", String.valueOf(1));
-                    String response = mHttpService.post(DomainConst.MELODY_LIST_URL, param.toString());
-                    JSONObject responseObject = new JSONObject(response);
-                    String code = responseObject.getString("code");
-                    if (code != null && code.equals(DomainConst.CODE_OK)) {
-                        JSONObject dataObject = responseObject.getJSONObject("data");
-                        JSONArray dataArray = dataObject.getJSONArray("melodyList");
-                        List<MelodyDetailBean> tempList = new ArrayList<>();
-                        for (int i = 0; i < dataArray.length(); i++) {
-                            JSONObject temp = dataArray.getJSONObject(i);
-                            MelodyDetailBean bean = new MelodyDetailBean();
-                            bean.id = temp.getLong("id");
-                            bean.url = DomainConst.MEDIA_DOMAIN + temp.getString("melodyFilePath");
-                            bean.coverImageUrl = DomainConst.PICTURE_DOMAIN + temp.getString("melodyCoverImage");
-                            bean.albumName = temp.getString("melodyAlbum");
-                            bean.title = temp.getString("melodyName");
-                            bean.artist = temp.getString("melodyArtist");
-                            bean.favorite = temp.getString("favorated");
-                            bean.tags = temp.getString("melodyCategory");
-                            bean.isPrecious = temp.getString("melodyPrecious");
-                            bean.mItemTitle = bean.title;
-                            bean.mItemIconUrl = bean.coverImageUrl;
-                            bean.mTags = bean.tags;
-                            bean.mPrecious = bean.isPrecious;
-                            tempList.add(bean);
-                        }
-                        runOnUiThread(() -> {
-                            if (tempList.size() > 0) {
-                                mMelodyList.clear();
-                                mMelodyList.addAll(tempList);
-                                mAlbumListFragment.notifyDataChange();
-                            }
-                        });
-                    }
-                    } catch(JSONException e){
-                        e.printStackTrace();
-                    } catch(IOException e){
-                        e.printStackTrace();
+    @Override
+    public void onItemClick(View view, int position) {
+        ArrayList<MusicTrack> dataList = new ArrayList<>();
+        List<MelodyDetailBean> beanList = mAlbumListFragment.getDataList();
+        for(MelodyDetailBean bean: beanList) {
+            dataList.add(bean.convertToMusicTrack());
+        }
+        Intent broadcast = new Intent(MediaService.PLAY_ACTION);
+        broadcast.putParcelableArrayListExtra(MediaService.PLAY_ACTION_PARAM_LIST, dataList);
+        broadcast.putExtra(MediaService.PLAY_ACTION_PARAM_POSITION, position);
+        sendBroadcast(broadcast);
+
+        Intent intent = new Intent(AlbumActivity.this, MusicPlayActivity.class);
+        intent.putExtra(MusicPlayActivity.BUNDLE_DATA, beanList.get(position));
+        intent.putExtra(MusicPlayActivity.BUNDLE_DATA_PLAY, true);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onLikeClick(int position, RecyclerViewMelodyListAdapter.Callback callback) {
+        List<MelodyDetailBean> beanList = mAlbumListFragment.getDataList();
+        if(playStateIntercept(true) && position >= 0 && position < beanList.size()) {
+            WeakReference<RecyclerViewMelodyListAdapter.Callback> weakReference = new WeakReference<>(callback);
+            JSONObject param = new JSONObject();
+            try {
+                param.put("accountId", mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1));
+                param.put("melodyId", beanList.get(position).id);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            HttpHelper.requestLikeMelody(mCoreContext, param, responseBean -> runOnUiThread(() -> {
+                if(weakReference.get() != null) {
+                    if(responseBean.isState()) {
+                        weakReference.get().onSuccess();
+                    } else {
+                        weakReference.get().onFailed();
                     }
                 }
-        });
+            }));
+        }
+    }
+
+    @Override
+    public void onDownloadClick(int position, RecyclerViewMelodyListAdapter.Callback callback) {
+
+    }
+
+    private void startChargeVipActivity() {
+//        Intent intent = new Intent(AlbumActivity.this, ChargeVipActivity.class);
+//        startActivity(intent);
+    }
+
+    private boolean playStateIntercept(boolean redirectLogin) {
+        int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
+        if(!mAlbumDetailBean.isPrecious.equals("true") && !redirectLogin) {
+            return true;
+        }
+        if(accountId == -1) {
+            Intent intent = new Intent(AlbumActivity.this, LoginActivity.class);
+            startActivity(intent);
+            return false;
+        } else {
+            boolean isVip = mPreferencesManager.get(PreferenceConst.ACCOUNT_VIP, false);
+            if(!isVip && mAlbumDetailBean.isPrecious.equals("true")) {
+                startChargeVipActivity();
+                return false;
+            }
+        }
+        return true;
     }
 }

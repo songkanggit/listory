@@ -64,6 +64,7 @@ import com.listory.songkang.utils.QiniuImageUtil;
 import com.listory.songkang.utils.StringUtil;
 import com.listory.songkang.view.AutoLoadImageView;
 import com.listory.songkang.view.AvatarCircleView;
+import com.squareup.haha.perflib.Main;
 import com.tencent.mm.opensdk.modelpay.PayReq;
 
 import org.intellij.lang.annotations.MagicConstant;
@@ -338,6 +339,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 break;
             case R.id.ll_vip:
                 Log.d(TAG, "ll_vip");
+            {
+                Intent intent = new Intent(MainActivity.this, ChargeVipActivity.class);
+                startActivity(intent);
+            }
                 break;
             case R.id.ll_coupon:
                 Log.d(TAG, "ll_coupon");

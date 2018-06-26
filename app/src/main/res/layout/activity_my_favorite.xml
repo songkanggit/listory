@@ -47,7 +47,7 @@
         android:layout_width="wrap_content"
         android:layout_height="@dimen/dp44"
         android:orientation="horizontal"
-        android:background="@drawable/button_press_effect">
+        android:background="?attr/selectableItemBackgroundBorderless">
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"

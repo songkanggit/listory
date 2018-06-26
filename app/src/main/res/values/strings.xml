@@ -139,7 +139,23 @@
     <string name="sms_code_correct">验证码正确</string>
     <string name="sms_code_wrong">验证码错误</string>
     <string name="error_telephone_tip">请输入正确的手机号码</string>
+    <string name="error_login">请重新登录</string>
 
     <!-- Activity Favorite -->
     <string name="play_all">全部播放</string>
+
+    <string name="immediate_open">立即开通</string>
+    <string name="one_year_vip">1年超级会员</string>
+    <string name="three_month_vip">3个月会员</string>
+    <string name="one_month_vip">1个月会员</string>
+
+    <string name="rmb_100">￥278</string>
+    <string name="rmb_28">￥78</string>
+    <string name="rmb_9_9">￥30</string>
+    <string name="title_activity_charge_vip">成为会员</string>
+
+    <string name="charge_option">充值方式</string>
+    <string name="alipay_pay">支付宝支付</string>
+    <string name="wechat_pay">微信支付</string>
+    <string name="go_pay">去支付</string>
 </resources>
