@@ -13,7 +13,6 @@ import android.widget.TextView;
 
 import com.listory.songkang.activity.MusicPlayActivity;
 import com.listory.songkang.adapter.RecyclerViewMelodyListSimpleAdapter;
-import com.listory.songkang.fragment.LinearLayoutItemDecoration;
 import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MusicTrack;
 
@@ -28,6 +27,7 @@ public class MelodyListDialog extends Dialog implements View.OnClickListener {
     private RecyclerView mRecyclerView;
     private List<MusicTrack> mDataList;
     private RecyclerViewMelodyListSimpleAdapter mAdapter;
+    private int mPlayingPosition = 0;
 
     public MelodyListDialog(@NonNull Context context, List<MusicTrack> dataList) {
         super(context, R.style.white_bg_dialog);
@@ -49,18 +49,27 @@ public class MelodyListDialog extends Dialog implements View.OnClickListener {
         lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
         getWindow().setAttributes(lp);
 
-        mCloseButton = findViewById(R.id.tv_close);
-        mRecyclerView = findViewById(R.id.recycler_view);
+        mCloseButton = (TextView) findViewById(R.id.tv_close);
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.addItemDecoration(new LinearLayoutItemDecoration(2, 2, getContext().getResources().getColor(R.color.colorF4F5F7)));
         mRecyclerView.setAdapter(mAdapter = new RecyclerViewMelodyListSimpleAdapter(getContext(), mDataList));
         mAdapter.setOnItemClickListener((MusicPlayActivity)getOwnerActivity());
         mCloseButton.setOnClickListener(this);
     }
 
     @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        mAdapter.setPlayingPosition(mPlayingPosition);
+    }
+
+    @Override
     public void onClick(View view) {
         dismiss();
+    }
+
+    public void setPlayingPosition(final int position) {
+        mPlayingPosition = position;
     }
 }

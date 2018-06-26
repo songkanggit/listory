@@ -45,6 +45,8 @@
         android:layout_height="49dp"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="27dp"
+        android:layout_marginLeft="@dimen/dp20"
+        android:layout_marginRight="@dimen/dp20"
         android:layout_below="@id/melody_name"
         android:orientation="horizontal">
         <ImageView
@@ -57,6 +59,7 @@
             android:src="@mipmap/music_player_like" />
         <ImageView
             android:id="@+id/iv_comment"
+            android:visibility="gone"
             style="@style/MusicPlayerControlButtonStyle"
             android:src="@mipmap/music_player_comment"/>
         <ImageView

@@ -39,6 +39,7 @@ import com.joker.annotation.PermissionsGranted;
 import com.joker.annotation.PermissionsRationale;
 import com.joker.annotation.PermissionsRequestSync;
 import com.joker.api.Permissions4M;
+import com.listory.songkang.activity.coupon.CouponActivity;
 import com.listory.songkang.alipay.AlipayApi;
 import com.listory.songkang.alipay.PayResult;
 import com.listory.songkang.bean.AlbumDetailBean;
@@ -292,24 +293,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     @Override
     protected void onResume() {
         super.onResume();
-        int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
-        DownLoadManager manager = DownLoadService.getDownLoadManager();
-        if(accountId != -1) {
-            manager.changeUser(String.valueOf(accountId));
-            mVipFlagIV.setVisibility(View.VISIBLE);
-            mHintTV.setVisibility(View.VISIBLE);
-            mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_login_logo));
-            syncAccountInfoFromServer();
-        } else {
-            manager.changeUser(DownLoadManager.DEFAULT_USER);
-            mVipFlagIV.setVisibility(View.GONE);
-            mHintTV.setVisibility(View.GONE);
-            mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_logout_logo));
-        }
+        updateUserInfo();
     }
 
     @Override
     public void onClick(View view) {
+        final boolean isLogin = isLogin();
         switch (view.getId()) {
             case R.id.circle_view: {
                 ArrayList<MusicTrack> dataList = new ArrayList<>();
@@ -329,26 +318,47 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 break;
             case R.id.ll_favorite:
             {
-                Intent intent = new Intent(MainActivity.this, MyFavoriteActivity.class);
-                startActivity(intent);
+                if(isLogin) {
+                    Intent intent = new Intent(MainActivity.this, MyFavoriteActivity.class);
+                    startActivity(intent);
+                } else {
+                    startLoginActivity();
+                }
             }
-                Log.d(TAG, "ll_favorite");
                 break;
             case R.id.ll_download:
-                Log.d(TAG, "ll_download");
+                if(isLogin) {
+
+                } else {
+                    startLoginActivity();
+                }
                 break;
             case R.id.ll_vip:
-                Log.d(TAG, "ll_vip");
             {
-                Intent intent = new Intent(MainActivity.this, ChargeVipActivity.class);
-                startActivity(intent);
+                if(isLogin) {
+                    Intent intent = new Intent(MainActivity.this, ChargeVipActivity.class);
+                    startActivity(intent);
+                } else {
+                 startLoginActivity();
+                }
             }
                 break;
             case R.id.ll_coupon:
-                Log.d(TAG, "ll_coupon");
-                break;
+            {
+                if(isLogin) {
+                    Intent intent = new Intent(MainActivity.this, CouponActivity.class);
+                    startActivity(intent);
+                } else {
+                    startLoginActivity();
+                }
+            }
+            break;
             case R.id.ll_exit:
-                Log.d(TAG, "ll_exit");
+                if(isLogin) {
+                    mPreferencesManager.put(PreferenceConst.ACCOUNT_ID, -1);
+                    mPreferencesManager.put(PreferenceConst.ACCOUNT_VIP, false);
+                    updateUserInfo();
+                }
                 break;
             case R.id.head_image_view:
             {
@@ -646,6 +656,30 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         });
     }
 
+    private void updateUserInfo() {
+        int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
+        DownLoadManager manager = DownLoadService.getDownLoadManager();
+        if(accountId != -1) {
+            if(manager != null) {
+                manager.changeUser(String.valueOf(accountId));
+            }
+            mVipFlagIV.setVisibility(View.VISIBLE);
+            mHintTV.setVisibility(View.VISIBLE);
+            mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_login_logo));
+            mExitLL.setVisibility(View.VISIBLE);
+            syncAccountInfoFromServer();
+        } else {
+            if(manager != null) {
+                manager.changeUser(DownLoadManager.DEFAULT_USER);
+            }
+            mVipFlagIV.setVisibility(View.GONE);
+            mHintTV.setVisibility(View.GONE);
+            mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_logout_logo));
+            mExitLL.setVisibility(View.GONE);
+            mNameEditText.setText(R.string.nav_login_register);
+        }
+    }
+
     public void syncAccountInfoFromServer() {
         mCoreContext.executeAsyncTask(() -> {
             try {
@@ -711,5 +745,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private boolean isLogin() {
         int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
         return accountId != -1;
+    }
+
+    private void startLoginActivity () {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
     }
 }

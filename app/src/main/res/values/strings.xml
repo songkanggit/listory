@@ -122,6 +122,7 @@
     <string name="downloading">正在下载...</string>
 
     <!-- Left Nav -->
+    <string name="nav_login_register">登录/注册</string>
     <string name="nav_favorite">我的收藏</string>
     <string name="nav_download">我的下载</string>
     <string name="nav_vip">成为会员</string>
@@ -142,6 +143,7 @@
     <string name="error_login">请重新登录</string>
 
     <!-- Activity Favorite -->
+    <string name="activity_favorite_title">我的收藏</string>
     <string name="play_all">全部播放</string>
 
     <string name="immediate_open">立即开通</string>
@@ -158,4 +160,14 @@
     <string name="alipay_pay">支付宝支付</string>
     <string name="wechat_pay">微信支付</string>
     <string name="go_pay">去支付</string>
+
+    <!-- Coupon Activity-->
+    <string name="coupon_activity_title">兑换码</string>
+    <string name="input_hint">请输入10位兑换码</string>
+    <string name="coupon_confirm">兑换</string>
+    <string name="contact_tip">如遇兑换问题，请联系客服</string>
+    <string name="contact_number">010-83068996</string>
+    <string name="contact_email">kefu@sxkj.com</string>
+    <string name="coupon_success_tip">恭喜，兑换成功</string>
+    <string name="coupon_unavailable">无效兑换码</string>
 </resources>

@@ -55,6 +55,10 @@
             android:launchMode="singleTop"/>
         <activity android:name="com.listory.songkang.activity.ChargeVipActivity"
             android:launchMode="singleTop"/>
+        <activity android:name="com.listory.songkang.activity.coupon.CouponActivity"
+            android:launchMode="singleTop"/>
+        <activity android:name="com.listory.songkang.activity.coupon.CouponResultActivity"
+            android:launchMode="singleTop"/>
     </application>
 
 </manifest>

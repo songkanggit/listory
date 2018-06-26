@@ -21,7 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:src="@mipmap/precious_icon"/>
+            android:src="@mipmap/precious_icon_s"/>
     </FrameLayout>
 
     <TextView

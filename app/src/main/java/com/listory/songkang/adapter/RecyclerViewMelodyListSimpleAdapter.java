@@ -1,15 +1,18 @@
 package com.listory.songkang.adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MusicTrack;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
@@ -18,12 +21,13 @@ import java.util.List;
 
 public class RecyclerViewMelodyListSimpleAdapter<T> extends RecyclerView.Adapter<RecyclerViewMelodyListSimpleAdapter.MyViewHolder>
         implements View.OnClickListener {
-    private OnItemClickListener onItemClickListener;
+    private WeakReference<OnItemClickListener> onItemClickListenerRf;
     private Context mContext;
     private List<T> mDataList;
+    private int mPlayingPosition = 0;
 
     public interface OnItemClickListener {
-        void onItemClick(View view , int position);
+        void onItemClick(View view, final int position);
     }
 
     public RecyclerViewMelodyListSimpleAdapter(Context context, List<T> dataList) {
@@ -42,6 +46,12 @@ public class RecyclerViewMelodyListSimpleAdapter<T> extends RecyclerView.Adapter
     public void onBindViewHolder(RecyclerViewMelodyListSimpleAdapter.MyViewHolder holder, int position) {
         MusicTrack melody = (MusicTrack) mDataList.get(position);
         holder.name.setText(melody.mTitle);
+        if(position == mPlayingPosition) {
+            holder.name.setTextColor(Color.parseColor("#ff1f43"));
+        } else {
+            holder.name.setTextColor(Color.parseColor("#333333"));
+        }
+
         holder.itemView.setTag(position);
     }
 
@@ -52,20 +62,27 @@ public class RecyclerViewMelodyListSimpleAdapter<T> extends RecyclerView.Adapter
 
     @Override
     public void onClick(View view) {
-        if(onItemClickListener != null) {
-            onItemClickListener.onItemClick(view, (int)view.getTag());
+        if(onItemClickListenerRf.get() != null) {
+            onItemClickListenerRf.get().onItemClick(view, (int)view.getTag());
         }
     }
 
+    public void setPlayingPosition(int position) {
+        if(position >= 0 && position < mDataList.size()) {
+            mPlayingPosition = position;
+        }
+        notifyDataSetChanged();
+    }
+
     public void setOnItemClickListener(OnItemClickListener listener) {
-        onItemClickListener = listener;
+        onItemClickListenerRf = new WeakReference<>(listener);
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         TextView name;
         public MyViewHolder(View v){
             super(v);
-            name = v.findViewById(R.id.tv_name);
+            name = (TextView) v.findViewById(R.id.tv_name);
         }
     }
 }

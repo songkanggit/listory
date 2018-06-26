@@ -30,10 +30,13 @@ import com.listory.songkang.utils.BitmapUtil;
 import com.listory.songkang.utils.DensityUtil;
 import com.listory.songkang.utils.GussBlurUtil;
 import com.listory.songkang.utils.QiniuImageUtil;
+import com.listory.songkang.utils.StringUtil;
 import com.listory.songkang.view.CachedImageView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -48,7 +51,7 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
     private SeekBar mSeekBar;
     private MusicTrack mMusicTrack;
     private TextView mCurrentTime, mLastTime, mMelodyNameTV;
-    private ImageView mDownloadIV, mFavoriteIV, mCommentIV, mShareIV;
+    private ImageView mDownloadIV, mFavoriteIV, mShareIV;
     private ImageView mRepeatRandomIV, mPreIV, mPauseResumeIV, mNextIV, mListIV;
     private MelodyListDialog mMelodyListDialog;
     private CachedImageView mBackgroundImageView;
@@ -115,7 +118,6 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
 
         mDownloadIV = fvb(R.id.iv_download);
         mFavoriteIV = fvb(R.id.iv_like);
-        mCommentIV = fvb(R.id.iv_comment);
         mShareIV = fvb(R.id.iv_share);
 
         mRepeatRandomIV = fvb(R.id.iv_random_repeat);
@@ -130,7 +132,6 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
         mBackImageView.setOnClickListener(this);
         mDownloadIV.setOnClickListener(this);
         mFavoriteIV.setOnClickListener(this);
-        mCommentIV.setOnClickListener(this);
         mShareIV.setOnClickListener(this);
 
         mRepeatRandomIV.setOnClickListener(this);
@@ -157,12 +158,7 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
-        mRootVG.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        setNoTitleNoNotificationBar();
     }
 
     @Override
@@ -196,11 +192,9 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
                     }
                     HttpHelper.requestLikeMelody(mCoreContext, param, responseBean -> runOnUiThread(() -> {
                         if(responseBean.isState()) {
-                            mMusicTrack.mFavorite = "true";
                             mFavoriteIV.setImageResource(R.mipmap.music_player_like);
                             Toast.makeText(getApplicationContext(), R.string.favorite_success, Toast.LENGTH_LONG).show();
                         } else {
-                            mMusicTrack.mFavorite = "false";
                             mFavoriteIV.setImageResource(R.mipmap.music_player_unlike);
                             Toast.makeText(getApplicationContext(), R.string.favorite_cancel, Toast.LENGTH_LONG).show();
                         }
@@ -263,19 +257,24 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
     @Override
     public void onItemClick(View view, int position) {
         MusicPlayer.getInstance().playAt(position);
+        mMelodyListDialog.dismiss();
     }
 
     private void showPopWindow() {
         if(mMelodyListDialog == null) {
             mMelodyListDialog = new MelodyListDialog(MusicPlayActivity.this, MusicPlayer.getInstance().getMusicTrackList());
             mMelodyListDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-            mMelodyListDialog.setOnCancelListener(dialogInterface -> mRootVG.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION));
+            mMelodyListDialog.setOnDismissListener(dialog -> setNoTitleNoNotificationBar());
         }
+        List<MusicTrack> musicTrackList = MusicPlayer.getInstance().getMusicTrackList();
+        int playPosition = 0;
+        for(int i=0; i<musicTrackList.size(); i++) {
+            if(musicTrackList.get(i).mUrl.equals(mMusicTrack.mUrl)) {
+                playPosition = i;
+                break;
+            }
+        }
+        mMelodyListDialog.setPlayingPosition(playPosition);
         Window window = mMelodyListDialog.getWindow();
         window.setGravity(Gravity.BOTTOM);
         window.setWindowAnimations(R.style.custom_popup_window_style);
@@ -287,7 +286,6 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
         mNextIV.setEnabled(enable);
         mDownloadIV.setEnabled(enable);
         mFavoriteIV.setEnabled(enable);
-        mCommentIV.setEnabled(enable);
         mRepeatRandomIV.setEnabled(enable);
     }
 
@@ -355,6 +353,15 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
         }
         timeLine.append(seconds);
         return timeLine.toString();
+    }
+
+    private void setNoTitleNoNotificationBar() {
+        mRootVG.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
 
     private void startLoginActivity(){

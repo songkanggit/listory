@@ -93,4 +93,10 @@
         <item name="android:textStyle">bold</item>
         <item name="android:background">@drawable/rectangle_rc_fbc600</item>
     </style>
+    <style name="activity_coupon_tip">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textSize">@dimen/sp12</item>
+        <item name="android:textColor">@color/color333333</item>
+    </style>
 </resources>

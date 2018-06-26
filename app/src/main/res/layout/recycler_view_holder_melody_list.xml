@@ -9,6 +9,6 @@
         android:layout_centerVertical="true"
         android:gravity="center_vertical"
         android:textSize="@dimen/sp15"
-        android:textColor="@color/colorPrimary"
+        android:textColor="@color/colorBlack"
         android:background="@drawable/button_press_effect"/>
 </RelativeLayout>
