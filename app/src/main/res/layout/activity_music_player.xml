@@ -3,7 +3,7 @@
     android:id="@+id/contentPanel"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.listory.songkang.activity.MusicPlayerActivity">
+    tools:context="com.listory.songkang.activity.MusicPlayActivity">
     <com.listory.songkang.view.CachedImageView
         android:id="@+id/iv_play_background"
         android:layout_width="match_parent"

@@ -68,6 +68,7 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener 
                     CountDownTimerUtils sendCodeTimer = new CountDownTimerUtils(mSendTV, 60000, 1000);
                     sendCodeTimer.start();
                     smsCodeRequest();
+                    mEditTextCode.requestFocus();
                 } else {
                     Toast.makeText(mContext, R.string.error_telephone_tip, Toast.LENGTH_LONG).show();
                 }

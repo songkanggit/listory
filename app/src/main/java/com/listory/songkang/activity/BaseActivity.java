@@ -2,7 +2,6 @@ package com.listory.songkang.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
@@ -11,13 +10,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 
 import com.listory.songkang.core.CoreApplication;
 import com.listory.songkang.core.CoreContext;
 import com.listory.songkang.core.connection.NetworkManager;
-import com.listory.songkang.core.download.DownloadManager;
-import com.listory.songkang.core.download.DownloadService;
 import com.listory.songkang.core.http.HttpManager;
 import com.listory.songkang.core.http.HttpService;
 import com.listory.songkang.core.logger.LoggerManager;
@@ -38,7 +34,6 @@ public abstract class BaseActivity extends AppCompatActivity  implements SwipeBa
     protected final String TAG;
     protected CoreContext mCoreContext;
     protected Context mContext;
-    protected DownloadService mDownloadService;
     protected PreferencesManager mPreferencesManager;
     protected NetworkManager mNetworkManager;
     protected LoggerService mLoggerService;
@@ -60,7 +55,6 @@ public abstract class BaseActivity extends AppCompatActivity  implements SwipeBa
         mLoggerService = mCoreContext.getApplicationService(LoggerManager.class);
         mNetworkManager = mCoreContext.getApplicationService(NetworkManager.class);
         mPreferencesManager = mCoreContext.getApplicationService(PreferencesManager.class);
-        mDownloadService = mCoreContext.getApplicationService(DownloadManager.class);
         mHttpService = mCoreContext.getApplicationService(HttpManager.class);
         parseIntent(getIntent());
 

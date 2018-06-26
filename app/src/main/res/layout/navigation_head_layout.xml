@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rl_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clickable="true"
     android:background="@mipmap/nav_background"
     android:layout_gravity="start">
     <com.listory.songkang.view.AvatarCircleView
-        android:id="@+id/circle_view"
+        android:id="@+id/head_image_view"
         android:layout_width="76dp"
         android:layout_height="76dp"
         android:layout_alignParentTop="true"
@@ -15,23 +16,27 @@
         android:paddingBottom="@dimen/dp8"
         android:src="@mipmap/default_logout_logo"/>
     <ImageView
+        android:id="@+id/iv_vip_flag"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_alignBottom="@id/circle_view"
+        android:layout_alignBottom="@id/head_image_view"
         android:visibility="gone"
         android:src="@mipmap/nav_vip_false"/>
-    <TextView
+    <EditText
+        android:id="@+id/edit_name"
         style="@style/NavigationTextView"
-        android:id="@+id/tv_name"
-        android:layout_below="@id/circle_view"
+        android:layout_below="@id/head_image_view"
         android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
-        android:text="登录/注册" />
+        android:enabled="false"
+        android:maxEms="20"
+        android:text="登录/注册"
+        android:background="@color/colorTransparent"/>
     <TextView
-        style="@style/NavigationTextView"
         android:id="@+id/tv_hint"
-        android:layout_below="@id/tv_name"
+        style="@style/NavigationTextView"
+        android:layout_below="@id/edit_name"
         android:layout_marginTop="12dp"
         android:layout_centerHorizontal="true"
         android:textSize="@dimen/sp15"
@@ -40,7 +45,7 @@
         android:text="点击编辑" />
     <LinearLayout
         android:id="@+id/ll_favorite"
-        android:layout_below="@id/tv_hint"
+        android:layout_below="@id/edit_name"
         style="@style/NavigationLinearLayout">
         <ImageView
             style="@style/NavigationImageView"

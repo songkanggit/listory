@@ -26,8 +26,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,6 +55,8 @@ import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
 import com.listory.songkang.service.MusicTrack;
+import com.listory.songkang.service.downloader.DownLoadManager;
+import com.listory.songkang.service.downloader.DownLoadService;
 import com.listory.songkang.transformer.ScaleInTransformer;
 import com.listory.songkang.utils.DensityUtil;
 import com.listory.songkang.utils.IPUtils;
@@ -83,7 +88,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private DrawerLayout mDrawerLayout;
     private List<BannerItemBean> mBannerItemList;
     private ViewPager mViewPager;
-    private AvatarCircleView mCircleView;
+    private AvatarCircleView mCircleView, mHeadImageCircleView;
     private ImageView mPlayControlImageView;
     private TextView mMelodyNameTV;
     private ObjectAnimator mRotateObjectAnimation;
@@ -91,7 +96,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private MusicTrack mCurrentMusicTrack;
     private Bitmap mDefaultLoadBitMap;
 
+    private RelativeLayout mContentRL;
     private LinearLayout mFavoriteLL, mDownloadLL, mVipLL, mCouponLL, mExitLL;
+    private ImageView mVipFlagIV;
+    private TextView mHintTV;
+    private EditText mNameEditText;
 
     @MagicConstant(intValues = {BannerType.MELODY_TYPE, BannerType.ALBUM_TYPE, BannerType.BROWSER_TYPE})
     public @interface BannerType {
@@ -221,23 +230,32 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mDrawerLayout = fvb(R.id.contentPanel);
         mPlayControlImageView = fvb(R.id.iv_play);
         mCircleView = fvb(R.id.circle_view);
+        mHeadImageCircleView = fvb(R.id.head_image_view);
         mMelodyNameTV = fvb(R.id.tv_melody_name);
 
+        mContentRL = fvb(R.id.rl_content);
         mFavoriteLL = fvb(R.id.ll_favorite);
         mDownloadLL = fvb(R.id.ll_download);
         mVipLL = fvb(R.id.ll_vip);
         mCouponLL = fvb(R.id.ll_coupon);
         mExitLL = fvb(R.id.ll_exit);
+
+        mVipFlagIV = fvb(R.id.iv_vip_flag);
+        mHintTV = fvb(R.id.tv_hint);
+        mNameEditText = fvb(R.id.edit_name);
     }
     protected void assembleViewClickAffairs(){
         mCircleView.setOnClickListener(this);
         mPlayControlImageView.setOnClickListener(this);
 
+        mContentRL.setOnClickListener(this);
         mFavoriteLL.setOnClickListener(this);
         mDownloadLL.setOnClickListener(this);
         mVipLL.setOnClickListener(this);
         mCouponLL.setOnClickListener(this);
         mExitLL.setOnClickListener(this);
+        mHintTV.setOnClickListener(this);
+        mHeadImageCircleView.setOnClickListener(this);
     }
     protected void initDataAfterUiAffairs(){
         requestBannerViewData();
@@ -274,10 +292,18 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     protected void onResume() {
         super.onResume();
         int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
+        DownLoadManager manager = DownLoadService.getDownLoadManager();
         if(accountId != -1) {
+            manager.changeUser(String.valueOf(accountId));
+            mVipFlagIV.setVisibility(View.VISIBLE);
+            mHintTV.setVisibility(View.VISIBLE);
+            mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_login_logo));
             syncAccountInfoFromServer();
         } else {
-
+            manager.changeUser(DownLoadManager.DEFAULT_USER);
+            mVipFlagIV.setVisibility(View.GONE);
+            mHintTV.setVisibility(View.GONE);
+            mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_logout_logo));
         }
     }
 
@@ -292,8 +318,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 broadcast.putExtra(PLAY_ACTION_PARAM_POSITION, -1);
                 sendBroadcast(broadcast);
 
-                Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
-                intent.putExtra(MusicPlayerActivity.BUNDLE_DATA_PLAY, false);
+                Intent intent = new Intent(MainActivity.this, MusicPlayActivity.class);
+                intent.putExtra(MusicPlayActivity.BUNDLE_DATA_PLAY, false);
                 startActivity(intent);
             }
                 break;
@@ -302,7 +328,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 break;
             case R.id.ll_favorite:
             {
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                Intent intent = new Intent(MainActivity.this, MyFavoriteActivity.class);
                 startActivity(intent);
             }
                 Log.d(TAG, "ll_favorite");
@@ -318,6 +344,30 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 break;
             case R.id.ll_exit:
                 Log.d(TAG, "ll_exit");
+                break;
+            case R.id.head_image_view:
+            {
+                if(!isLogin()) {
+                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                    startActivity(intent);
+                }
+            }
+                break;
+            case R.id.tv_hint:
+                mNameEditText.setEnabled(true);
+                mNameEditText.requestFocus();
+                mNameEditText.setSelection(mNameEditText.getText().length());
+                ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
+                        .showSoftInput(mNameEditText, InputMethodManager.SHOW_IMPLICIT);
+                break;
+            case R.id.rl_content:
+                if(mNameEditText.isEnabled()) {
+                    mNameEditText.clearFocus();
+                    mNameEditText.setEnabled(false);
+                    ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
+                            .hideSoftInputFromWindow(mNameEditText.getWindowToken(),
+                                    InputMethodManager.HIDE_NOT_ALWAYS);
+                }
                 break;
         }
     }
@@ -601,7 +651,20 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     String response = mHttpService.post(DomainConst.ACCOUNT_INFO_URL, param.toString());
                     JSONObject responseObject = new JSONObject(response);
                     JSONObject accountInfo = responseObject.getJSONObject("data");
+                    if(accountInfo != null)
                     saveAccountInfoToPreference(accountInfo);
+                    runOnUiThread(() -> {
+                        boolean isVip = mPreferencesManager.get(PreferenceConst.ACCOUNT_VIP, false);
+                        if(isVip) {
+                            mVipFlagIV.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.nav_vip_true));
+                        } else {
+                            mVipFlagIV.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.nav_vip_false));
+                        }
+                        final String nickName = mPreferencesManager.get(PreferenceConst.ACCOUNT_NICK_NAME, "");
+                        if(!StringUtil.isEmpty(nickName) && nickName.length() < 20) {
+                            mNameEditText.setText(nickName);
+                        }
+                    });
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -635,9 +698,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 mPreferencesManager.put(PreferenceConst.ACCOUNT_VIP_START_TIME, accountInfo.getString("vipStartTime"));
                 mPreferencesManager.put(PreferenceConst.ACCOUNT_VIP_END_TIME, accountInfo.getString("vipEndTime"));
             }
-            finish();
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean isLogin() {
+        int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
+        return accountId != -1;
     }
 }

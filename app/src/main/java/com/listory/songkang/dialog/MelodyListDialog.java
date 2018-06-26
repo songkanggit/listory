@@ -11,7 +11,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.listory.songkang.activity.MusicPlayerActivity;
+import com.listory.songkang.activity.MusicPlayActivity;
 import com.listory.songkang.adapter.RecyclerViewMelodyListSimpleAdapter;
 import com.listory.songkang.fragment.LinearLayoutItemDecoration;
 import com.listory.songkang.listory.R;
@@ -55,7 +55,7 @@ public class MelodyListDialog extends Dialog implements View.OnClickListener {
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearLayoutItemDecoration(2, 2, getContext().getResources().getColor(R.color.colorF4F5F7)));
         mRecyclerView.setAdapter(mAdapter = new RecyclerViewMelodyListSimpleAdapter(getContext(), mDataList));
-        mAdapter.setOnItemClickListener((MusicPlayerActivity)getOwnerActivity());
+        mAdapter.setOnItemClickListener((MusicPlayActivity)getOwnerActivity());
         mCloseButton.setOnClickListener(this);
     }
 

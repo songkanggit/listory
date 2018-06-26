@@ -7,7 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.LinearLayout;
 
-import com.listory.songkang.activity.MusicPlayerActivity;
+import com.listory.songkang.activity.MusicPlayActivity;
 import com.listory.songkang.adapter.RecyclerViewMelodyListAdapter;
 import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.listory.R;
@@ -67,9 +67,9 @@ public class AlbumListFragment extends BaseFragment implements View.OnClickListe
         broadcast.putExtra(MediaService.PLAY_ACTION_PARAM_POSITION, position);
         getActivity().sendBroadcast(broadcast);
 
-        Intent intent = new Intent(getActivity(), MusicPlayerActivity.class);
-        intent.putExtra(MusicPlayerActivity.BUNDLE_DATA, mDataList.get(position));
-        intent.putExtra(MusicPlayerActivity.BUNDLE_DATA_PLAY, true);
+        Intent intent = new Intent(getActivity(), MusicPlayActivity.class);
+        intent.putExtra(MusicPlayActivity.BUNDLE_DATA, mDataList.get(position));
+        intent.putExtra(MusicPlayActivity.BUNDLE_DATA_PLAY, true);
         startActivity(intent);
     }
 
@@ -77,5 +77,15 @@ public class AlbumListFragment extends BaseFragment implements View.OnClickListe
         if(mContentAdapter != null) {
             mContentAdapter.notifyDataSetChanged();
         }
+    }
+
+    @Override
+    public void onLikeClick(int position, RecyclerViewMelodyListAdapter.Callback callback) {
+
+    }
+
+    @Override
+    public void onDownloadClick(int position, RecyclerViewMelodyListAdapter.Callback callback) {
+
     }
 }

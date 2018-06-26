@@ -3,20 +3,32 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/dp60"
     android:background="@color/colorWhite">
-    <com.listory.songkang.view.CachedImageView
-        android:id="@+id/iv_icon"
+    <FrameLayout
+        android:id="@+id/fl_icon"
         android:layout_width="@dimen/dp60"
         android:layout_height="@dimen/dp60"
         android:layout_marginLeft="@dimen/dp10"
         android:layout_marginBottom="@dimen/dp10"
         android:layout_alignParentLeft="true"
-        android:layout_centerVertical="true"
-        android:src="@mipmap/default_melody_square"/>
+        android:layout_centerVertical="true">
+        <com.listory.songkang.view.CachedImageView
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:id="@+id/iv_icon"
+            android:src="@mipmap/default_melody_square"/>
+        <ImageView
+            android:id="@+id/iv_vip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:src="@mipmap/precious_icon"/>
+    </FrameLayout>
+
     <TextView
         android:id="@+id/tv_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/iv_icon"
+        android:layout_toRightOf="@id/fl_icon"
         android:layout_marginTop="@dimen/dp12"
         android:layout_alignParentTop="true"
         android:layout_marginLeft="@dimen/dp10"
@@ -26,7 +38,7 @@
         android:id="@+id/tv_author"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/iv_icon"
+        android:layout_toRightOf="@id/fl_icon"
         android:layout_below="@id/tv_name"
         android:layout_marginLeft="@dimen/dp10"
         android:layout_marginTop="@dimen/dp10"
@@ -35,7 +47,7 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp1"
-        android:layout_toRightOf="@id/iv_icon"
+        android:layout_toRightOf="@id/fl_icon"
         android:layout_marginLeft="@dimen/dp10"
         android:layout_alignParentBottom="true"
         android:background="@color/colorF4F5F7"/>

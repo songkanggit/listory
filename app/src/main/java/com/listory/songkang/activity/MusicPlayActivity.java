@@ -15,10 +15,13 @@ import android.view.Window;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.listory.songkang.adapter.RecyclerViewMelodyListSimpleAdapter;
 import com.listory.songkang.bean.MelodyDetailBean;
+import com.listory.songkang.constant.PreferenceConst;
 import com.listory.songkang.dialog.MelodyListDialog;
+import com.listory.songkang.helper.HttpHelper;
 import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
@@ -29,11 +32,14 @@ import com.listory.songkang.utils.GussBlurUtil;
 import com.listory.songkang.utils.QiniuImageUtil;
 import com.listory.songkang.view.CachedImageView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class MusicPlayerActivity extends BaseActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, RecyclerViewMelodyListSimpleAdapter.OnItemClickListener {
+public class MusicPlayActivity extends BaseActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, RecyclerViewMelodyListSimpleAdapter.OnItemClickListener {
     public static final String BUNDLE_DATA = "data";
     public static final String BUNDLE_DATA_PLAY = "data_play";
 
@@ -48,6 +54,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
     private CachedImageView mBackgroundImageView;
     private Bitmap mBackgroundBitmap;
     private boolean mIsAutoPlay;
+    private int mAccountId;
 
     @MediaService.RepeatMode
     private int mRepeatMode = MediaService.RepeatMode.REPEAT_ALL;
@@ -170,6 +177,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
 
     @Override
     public void onClick(View view) {
+        final boolean isLogin = isLogin();
         switch (view.getId()) {
             case R.id.toolbar_back:
                 finish();
@@ -177,9 +185,37 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
             case R.id.iv_download:
                 break;
             case R.id.iv_like:
-                mFavoriteIV.setImageResource(R.mipmap.music_player_unlike);
+                if(isLogin) {
+                    mFavoriteIV.setEnabled(false);
+                    JSONObject param = new JSONObject();
+                    try {
+                        param.put("accountId", mAccountId);
+                        param.put("melodyId", mMusicTrack.mId);
+                    } catch (JSONException e) {
+                        return;
+                    }
+                    HttpHelper.requestLikeMelody(mCoreContext, param, responseBean -> runOnUiThread(() -> {
+                        if(responseBean.isState()) {
+                            mMusicTrack.mFavorite = "true";
+                            mFavoriteIV.setImageResource(R.mipmap.music_player_like);
+                            Toast.makeText(getApplicationContext(), R.string.favorite_success, Toast.LENGTH_LONG).show();
+                        } else {
+                            mMusicTrack.mFavorite = "false";
+                            mFavoriteIV.setImageResource(R.mipmap.music_player_unlike);
+                            Toast.makeText(getApplicationContext(), R.string.favorite_cancel, Toast.LENGTH_LONG).show();
+                        }
+                        mFavoriteIV.setEnabled(true);
+                    }));
+                } else {
+                    startLoginActivity();
+                }
                 break;
             case R.id.iv_comment:
+                if(isLogin) {
+
+                } else {
+                    startLoginActivity();
+                }
                 break;
             case R.id.iv_share:
                 break;
@@ -231,7 +267,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
 
     private void showPopWindow() {
         if(mMelodyListDialog == null) {
-            mMelodyListDialog = new MelodyListDialog(MusicPlayerActivity.this, MusicPlayer.getInstance().getMusicTrackList());
+            mMelodyListDialog = new MelodyListDialog(MusicPlayActivity.this, MusicPlayer.getInstance().getMusicTrackList());
             mMelodyListDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             mMelodyListDialog.setOnCancelListener(dialogInterface -> mRootVG.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -281,7 +317,7 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
             mBackgroundImageView.setImageUrl(imageUrl, url -> runOnUiThread(() -> {
                 Bitmap bitmap = ((BitmapDrawable)mBackgroundImageView.getDrawable()).getBitmap();
                 if(bitmap != null) {
-                    mBackgroundBitmap = GussBlurUtil.rsBlur(MusicPlayerActivity.this, bitmap, 18, (float)0.6);
+                    mBackgroundBitmap = GussBlurUtil.rsBlur(MusicPlayActivity.this, bitmap, 18, (float)0.6);
                     mBackgroundImageView.setImageBitmap(mBackgroundBitmap);
                 }
             }));
@@ -319,5 +355,15 @@ public class MusicPlayerActivity extends BaseActivity implements View.OnClickLis
         }
         timeLine.append(seconds);
         return timeLine.toString();
+    }
+
+    private void startLoginActivity(){
+        Intent startLoginIntent = new Intent(MusicPlayActivity.this, LoginActivity.class);
+        startActivity(startLoginIntent);
+    }
+
+    private boolean isLogin() {
+        mAccountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
+        return mAccountId != -1;
     }
 }

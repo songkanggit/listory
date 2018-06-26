@@ -100,14 +100,26 @@
 
     <string name="album_title_0">简介</string>
     <string name="album_title_1">故事</string>
+    <string name="login_tip">请先登陆!</string>
+    <string name="vip_tip">请先成为会员</string>
+    <string name="app_load_more">加载更多</string>
+    <string name="app_load_no_more">没有更多了</string>
+    <string name="favorite_success">已收藏</string>
+    <string name="favorite_cancel">取消收藏</string>
 
     <string name="will_youth">有志少年的故事</string>
     <string name="mr_black">黑猫警长的故事</string>
 
     <string name="app_close">关闭</string>
 
-    <!-- wx tips-->
+    <!-- Wei xin tips-->
     <string name="wx_not_installed">您未安装微信客户端？</string>
+
+    <!-- Download tips -->
+    <string name="download_over_max">最大支持同时下载5个曲目，请稍等</string>
+    <string name="download_task_exist">已在下载任务队列中</string>
+    <string name="already_downloaded">已下载，请在下载列表里查看</string>
+    <string name="downloading">正在下载...</string>
 
     <!-- Left Nav -->
     <string name="nav_favorite">我的收藏</string>
@@ -127,4 +139,7 @@
     <string name="sms_code_correct">验证码正确</string>
     <string name="sms_code_wrong">验证码错误</string>
     <string name="error_telephone_tip">请输入正确的手机号码</string>
+
+    <!-- Activity Favorite -->
+    <string name="play_all">全部播放</string>
 </resources>

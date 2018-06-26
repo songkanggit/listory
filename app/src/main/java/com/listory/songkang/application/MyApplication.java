@@ -2,6 +2,7 @@ package com.listory.songkang.application;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.HandlerThread;
 import android.os.Process;
@@ -11,10 +12,10 @@ import android.util.SparseArray;
 import com.listory.songkang.core.CoreApplication;
 import com.listory.songkang.core.CoreContext;
 import com.listory.songkang.core.connection.NetworkManager;
-import com.listory.songkang.core.download.DownloadManager;
 import com.listory.songkang.core.http.HttpManager;
 import com.listory.songkang.core.logger.LoggerManager;
 import com.listory.songkang.core.preference.PreferencesManager;
+import com.listory.songkang.service.downloader.DownLoadService;
 import com.squareup.leakcanary.LeakCanary;
 
 import java.util.List;
@@ -74,6 +75,7 @@ public class MyApplication extends CoreApplication {
 //
 //        mApi = WXAPIFactory.createWXAPI(this, DomainConst.APP_ID);
 //        mApi.registerApp(DomainConst.APP_ID);
+        startService(new Intent(getApplicationContext(), DownLoadService.class));
         if(LeakCanary.isInAnalyzerProcess(this)) {
             return;
         }
@@ -125,7 +127,6 @@ public class MyApplication extends CoreApplication {
         coreContext.addApplicationService(new LoggerManager(coreContext));
         coreContext.addApplicationService(new NetworkManager(coreContext));
         coreContext.addApplicationService(new PreferencesManager(coreContext));
-        coreContext.addApplicationService(new DownloadManager(coreContext));
     }
 
     @Override
