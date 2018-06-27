@@ -27,7 +27,7 @@ import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.widget.ImageView;
 
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 
 
 /**

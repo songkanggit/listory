@@ -11,7 +11,7 @@ import com.listory.songkang.adapter.RecyclerViewMelodyListAdapter;
 import com.listory.songkang.bean.AlbumDetailBean;
 import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.helper.HttpHelper;
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 import com.listory.songkang.utils.StringUtil;
 
 import org.json.JSONException;

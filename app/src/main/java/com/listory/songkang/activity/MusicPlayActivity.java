@@ -26,7 +26,8 @@ import com.listory.songkang.core.download.DownLoadListener;
 import com.listory.songkang.core.download.DownLoadManager;
 import com.listory.songkang.dialog.MelodyListDialog;
 import com.listory.songkang.helper.HttpHelper;
-import com.listory.songkang.listory.R;
+import com.listory.songkang.helper.WeiXinHelper;
+import com.listory.songkang.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
 import com.listory.songkang.service.MusicTrack;
@@ -177,6 +178,7 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
             unregisterReceiver(mIntentReceiver);
             mIntentReceiver = null;
         }
+        mDownloadManager.removeAllDownLoadListener(this);
     }
 
     @Override
@@ -244,6 +246,11 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
                 }
                 break;
             case R.id.iv_share:
+                if(mMusicTrack != null) {
+                    final String sharedUrl = "https://admin.liyangstory.com/share/player.html?melodyAlbum="
+                            + mMusicTrack.mAlbum + "&melodyId=" + mMusicTrack.mId;
+                    WeiXinHelper.getInstance().shareToWeChat(getApplicationContext(), sharedUrl, mMusicTrack.mTitle);
+                }
                 break;
             case R.id.iv_random_repeat:
                 mRepeatMode = (mRepeatMode + 1) % 3;
@@ -369,6 +376,16 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
     }
 
     private void updateMusicInfo(MusicTrack musicTrack, boolean force) {
+        if(MusicPlayer.getInstance().isPlaying()) {
+            mPauseResumeIV.setImageResource(R.mipmap.music_player_pause);
+        } else {
+            mPauseResumeIV.setImageResource(R.mipmap.music_player_play);
+        }
+        if(MusicPlayer.getInstance().isInitialized()) {
+            enableNextAndPreviousControl(true);
+        } else {
+            enableNextAndPreviousControl(false);
+        }
         if((musicTrack != null && !musicTrack.equals(mMusicTrack)) || force) {
             mMusicTrack = musicTrack;
             final String imageUrl = mMusicTrack.mCoverImageUrl + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.ALBUM_SQUARE);
@@ -415,16 +432,6 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
                     break;
                 }
             }
-        }
-        if(MusicPlayer.getInstance().isPlaying()) {
-            mPauseResumeIV.setImageResource(R.mipmap.music_player_pause);
-        } else {
-            mPauseResumeIV.setImageResource(R.mipmap.music_player_play);
-        }
-        if(MusicPlayer.getInstance().isInitialized()) {
-            enableNextAndPreviousControl(true);
-        } else {
-            enableNextAndPreviousControl(false);
         }
     }
 

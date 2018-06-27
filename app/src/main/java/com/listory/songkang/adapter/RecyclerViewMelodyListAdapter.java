@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.constant.PreferenceConst;
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 import com.listory.songkang.utils.QiniuImageUtil;
 import com.listory.songkang.utils.StringUtil;
 import com.listory.songkang.view.CachedImageView;

@@ -45,7 +45,7 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.Scroller;
 
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;

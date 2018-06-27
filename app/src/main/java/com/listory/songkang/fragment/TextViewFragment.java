@@ -1,10 +1,9 @@
 package com.listory.songkang.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.StringRes;
 import android.widget.TextView;
 
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 
 /**
  * Created by songkang on 2018/4/25.

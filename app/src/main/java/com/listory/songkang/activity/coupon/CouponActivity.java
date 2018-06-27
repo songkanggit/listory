@@ -1,7 +1,6 @@
 package com.listory.songkang.activity.coupon;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
@@ -15,7 +14,7 @@ import android.widget.TextView;
 import com.listory.songkang.activity.BaseActivity;
 import com.listory.songkang.constant.DomainConst;
 import com.listory.songkang.constant.PreferenceConst;
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 import com.listory.songkang.utils.DensityUtil;
 
 import org.json.JSONException;

@@ -108,6 +108,69 @@ public class HttpHelper {
             }
         });
     }
+
+    public static void thirdPartyLoginRequest(final CoreContext coreContext, final JSONObject param, CallBack callBack) {
+        coreContext.executeAsyncTask(() -> {
+            try {
+                HttpService httpService = coreContext.getApplicationService(HttpManager.class);
+                String response = httpService.post(DomainConst.ACCOUNT_THIRD_PARTY_LOGIN_URL, param.toString());
+                JSONObject responseObject = new JSONObject(response);
+                if(responseObject.getBoolean("state")) {
+                    final JSONObject accountInfo = responseObject.getJSONObject("data");
+                    if(accountInfo != null) {
+                        saveAccountInfoToPreference(coreContext.getApplicationService(PreferencesManager.class), accountInfo, callBack);
+                    }
+                } else {
+                    if(callBack != null) {
+                        callBack.onDataComplete(new HttpResponseBean());
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public static void saveAccountInfoToPreference(PreferencesManager preferencesManager, final JSONObject accountInfo, CallBack callBack){
+        try {
+            preferencesManager.put(PreferenceConst.ACCOUNT_ID, accountInfo.get("id"));
+            String telephone = accountInfo.getString("telephone");
+            if(!telephone.equals("null")) {
+                preferencesManager.put(PreferenceConst.ACCOUNT_TELEPHONE, telephone);
+            }
+
+            String iconUrl = accountInfo.getString("icon");
+            if(!iconUrl.equals("null")) {
+                if(!iconUrl.startsWith("http")) {
+                    iconUrl = DomainConst.PICTURE_DOMAIN + iconUrl;
+                }
+                preferencesManager.put(PreferenceConst.ACCOUNT_ICON, iconUrl);
+            }
+
+            final String isVip = accountInfo.getString("vip");
+            if(!StringUtil.isEmpty(isVip) && isVip.equals("true")) {
+                preferencesManager.put(PreferenceConst.ACCOUNT_VIP, true);
+            } else {
+                preferencesManager.put(PreferenceConst.ACCOUNT_VIP, false);
+            }
+            preferencesManager.put(PreferenceConst.ACCOUNT_NICK_NAME, accountInfo.get("nickName"));
+
+            String startTime = accountInfo.getString("vipStartTime");
+            if(!startTime.equals("null")) {
+                preferencesManager.put(PreferenceConst.ACCOUNT_VIP_START_TIME, accountInfo.getString("vipStartTime"));
+                preferencesManager.put(PreferenceConst.ACCOUNT_VIP_END_TIME, accountInfo.getString("vipEndTime"));
+            }
+
+            if(callBack != null) {
+                callBack.onDataComplete(new HttpResponseBean());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+    
     public interface CallBack {
         void onDataComplete(HttpResponseBean response);
     }

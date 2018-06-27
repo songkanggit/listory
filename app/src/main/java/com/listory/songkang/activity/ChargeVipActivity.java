@@ -21,7 +21,7 @@ import com.listory.songkang.constant.DomainConst;
 import com.listory.songkang.constant.PreferenceConst;
 import com.listory.songkang.dialog.SelectPayDialog;
 import com.listory.songkang.helper.WeiXinHelper;
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 import com.listory.songkang.utils.IPUtils;
 import com.tencent.mm.opensdk.modelpay.PayReq;
 

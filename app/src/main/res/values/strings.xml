@@ -88,4 +88,26 @@
     <string name="random_play">随机播放</string>
     <string name="repeat_play">单曲循环</string>
     <string name="repeat_play_all">全部循环</string>
+
+    <!-- wx -->
+    <string name="errcode_success">授权成功</string>
+    <string name="errcode_cancel">授权取消</string>
+    <string name="errcode_deny">授权被拒绝</string>
+    <string name="errcode_unsupported">不支持错误</string>
+    <string name="errcode_unknown">授权返回</string>
+    <string name="errcode_server">服务器无应答</string>
+
+    <string name="errcode_pay_success">充值成功</string>
+    <string name="errcode_pay_cancel">充值失败</string>
+    <string name="errcode_pay_deny">充值失败</string>
+    <string name="errcode_pay_unsupported">充值失败</string>
+    <string name="errcode_pay_unknown">充值失败</string>
+
+    <string name="back_to_app">返回故事树</string>
+    <string name="stay_in_wx">留在微信</string>
+    <string name="send_success">已发送</string>
+    <string name="get_message_from_wx">从微信获取消息</string>
+    <string name="show_message_from_wx">展示微信的消息</string>
+    <string name="share_success">分享成功</string>
+    <string name="share_failed">分享失败</string>
 </resources>

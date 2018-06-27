@@ -18,7 +18,7 @@ import com.listory.songkang.bean.SQLDownLoadInfo;
 import com.listory.songkang.constant.DomainConst;
 import com.listory.songkang.constant.PreferenceConst;
 import com.listory.songkang.helper.HttpHelper;
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.core.download.DownLoadListener;

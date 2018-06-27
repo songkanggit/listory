@@ -10,7 +10,7 @@ import android.support.annotation.NonNull;
 import android.util.SparseArray;
 
 import com.listory.songkang.core.logger.Logger;
-import com.listory.songkang.listory.BuildConfig;
+import com.listory.songkang.BuildConfig;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;

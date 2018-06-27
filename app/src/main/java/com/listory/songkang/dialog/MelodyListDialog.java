@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 import com.listory.songkang.activity.MusicPlayActivity;
 import com.listory.songkang.adapter.RecyclerViewMelodyListSimpleAdapter;
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 import com.listory.songkang.service.MusicTrack;
 
 import java.util.List;

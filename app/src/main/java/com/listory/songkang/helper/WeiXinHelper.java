@@ -6,7 +6,7 @@ import android.graphics.BitmapFactory;
 import android.widget.Toast;
 
 import com.listory.songkang.constant.DomainConst;
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 import com.listory.songkang.utils.WxUtil;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
 import com.tencent.mm.opensdk.modelmsg.SendMessageToWX;

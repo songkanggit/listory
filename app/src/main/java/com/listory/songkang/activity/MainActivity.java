@@ -40,7 +40,6 @@ import com.joker.annotation.PermissionsRationale;
 import com.joker.annotation.PermissionsRequestSync;
 import com.joker.api.Permissions4M;
 import com.listory.songkang.activity.coupon.CouponActivity;
-import com.listory.songkang.alipay.AlipayApi;
 import com.listory.songkang.alipay.PayResult;
 import com.listory.songkang.bean.AlbumDetailBean;
 import com.listory.songkang.bean.BannerItemBean;
@@ -49,22 +48,17 @@ import com.listory.songkang.bean.MelodyDetailBean;
 import com.listory.songkang.constant.DomainConst;
 import com.listory.songkang.constant.PermissionConstants;
 import com.listory.songkang.constant.PreferenceConst;
-import com.listory.songkang.core.http.HttpManager;
-import com.listory.songkang.core.http.HttpService;
-import com.listory.songkang.helper.WeiXinHelper;
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
 import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.core.download.DownLoadManager;
 import com.listory.songkang.transformer.ScaleInTransformer;
 import com.listory.songkang.utils.DensityUtil;
-import com.listory.songkang.utils.IPUtils;
 import com.listory.songkang.utils.QiniuImageUtil;
 import com.listory.songkang.utils.StringUtil;
 import com.listory.songkang.view.AutoLoadImageView;
 import com.listory.songkang.view.AvatarCircleView;
-import com.tencent.mm.opensdk.modelpay.PayReq;
 
 import org.intellij.lang.annotations.MagicConstant;
 import org.json.JSONArray;
@@ -101,6 +95,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private ImageView mVipFlagIV;
     private TextView mHintTV;
     private EditText mNameEditText;
+    private int mAccountId;
 
     @MagicConstant(intValues = {BannerType.MELODY_TYPE, BannerType.ALBUM_TYPE, BannerType.BROWSER_TYPE})
     public @interface BannerType {
@@ -397,6 +392,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             unregisterReceiver(mIntentReceiver);
             MusicPlayer.getInstance().unBindMediaService(getApplicationContext());
         }
+        MusicPlayer.getInstance().removeConnectionCallback(this);
         if(mDefaultLoadBitMap != null) {
             mDefaultLoadBitMap.recycle();
             mDefaultLoadBitMap = null;
@@ -571,7 +567,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
                     runOnUiThread(() -> mViewPager.setAdapter(new HomePageAdapter()));
 
-                    int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
                     for(BannerItemBean bean:tempList) {
                         String requestUrl = "";
                         switch (bean.getContentType()) {
@@ -589,8 +584,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                         if(!StringUtil.isEmpty(requestUrl)) {
                             JSONObject secondParam = new JSONObject();
                             secondParam.put("id", String.valueOf(bean.getContentId()));
-                            if(accountId != -1) {
-                                secondParam.put("accountId", String.valueOf(accountId));
+                            if(isLogin()) {
+                                secondParam.put("accountId", String.valueOf(mAccountId));
                             }
                             String secondResponse = mHttpService.post(requestUrl, secondParam.toString());
                             JSONObject secondObject = new JSONObject(secondResponse);
@@ -607,62 +602,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         });
     }
 
-    private void wxPayRequest(){
-        mCoreContext.executeAsyncTask(() -> {
-            try {
-                HttpService httpService = mCoreContext.getApplicationService(HttpManager.class);
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("ip", IPUtils.getIpAddress(mContext));
-                jsonObject.put("productId", "0003");
-                jsonObject.put("accountId", "19");
-                jsonObject.put("productInfo", "故事树-会员充值");
-                String response = httpService.post(DomainConst.WX_UNI_ORDER_URL, jsonObject.toString());
-                JSONObject responseObject = new JSONObject(response);
-                JSONObject json = responseObject.getJSONObject("data");
-                PayReq req = new PayReq();
-                req.appId			= json.getString("appid");
-                req.partnerId		= json.getString("partnerid");
-                req.prepayId		= json.getString("prepayid");
-                req.nonceStr		= json.getString("noncestr");
-                req.timeStamp		= json.getString("timestamp");
-                req.packageValue	= json.getString("package");
-                req.sign			= json.getString("sign");
-                req.extData			= "app data"; // optional
-                WeiXinHelper.getInstance().wxPayReq(getApplicationContext(), req);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    private void alipayPayRequest() {
-        mCoreContext.executeAsyncTask(() -> {
-            try {
-                HttpService httpService = mCoreContext.getApplicationService(HttpManager.class);
-                JSONObject jsonObject = new JSONObject();
-
-                jsonObject.put("ip", IPUtils.getIpAddress(mContext));
-                jsonObject.put("productId", "0002");
-                jsonObject.put("productInfo", "故事树-会员充值");
-                jsonObject.put("accountId", "19");
-                String response = httpService.post(DomainConst.ALIPAY_ORDER_URL, jsonObject.toString());
-                JSONObject responseObject = new JSONObject(response);
-                String json = responseObject.getString("data");
-                AlipayApi.payV2(MainActivity.this,  mAlipayHandler, json);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
     private void updateUserInfo() {
-        int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
-        if(accountId != -1) {
-            mDownloadManager.changeUser(String.valueOf(accountId));
+        if(isLogin()) {
+            mDownloadManager.changeUser(String.valueOf(mAccountId));
             mVipFlagIV.setVisibility(View.VISIBLE);
             mHintTV.setVisibility(View.VISIBLE);
             mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_login_logo));
@@ -727,7 +669,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 mPreferencesManager.put(PreferenceConst.ACCOUNT_ICON, iconUrl);
             }
 
-            mPreferencesManager.put(PreferenceConst.ACCOUNT_VIP, accountInfo.get("vip"));
+            final String isVip = accountInfo.getString("vip");
+            if(!StringUtil.isEmpty(isVip) && isVip.equals("true")) {
+                mPreferencesManager.put(PreferenceConst.ACCOUNT_VIP, true);
+            } else {
+                mPreferencesManager.put(PreferenceConst.ACCOUNT_VIP, false);
+            }
             mPreferencesManager.put(PreferenceConst.ACCOUNT_NICK_NAME, accountInfo.get("nickName"));
 
             String startTime = accountInfo.getString("vipStartTime");
@@ -741,8 +688,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     private boolean isLogin() {
-        int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
-        return accountId != -1;
+        mAccountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
+        return mAccountId != -1;
     }
 
     private void startLoginActivity () {

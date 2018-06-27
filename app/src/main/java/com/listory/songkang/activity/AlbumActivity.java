@@ -23,26 +23,21 @@ import com.listory.songkang.adapter.RecyclerViewMelodyListAdapter;
 import com.listory.songkang.adapter.ViewPagerAdapter;
 import com.listory.songkang.bean.AlbumDetailBean;
 import com.listory.songkang.bean.MelodyDetailBean;
-import com.listory.songkang.constant.DomainConst;
 import com.listory.songkang.constant.PermissionConstants;
 import com.listory.songkang.constant.PreferenceConst;
 import com.listory.songkang.container.NavigationTabStrip;
 import com.listory.songkang.fragment.AlbumListFragment;
 import com.listory.songkang.fragment.TextViewFragment;
 import com.listory.songkang.helper.HttpHelper;
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.utils.QiniuImageUtil;
-import com.listory.songkang.utils.StringUtil;
 import com.listory.songkang.view.CachedImageView;
 
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;

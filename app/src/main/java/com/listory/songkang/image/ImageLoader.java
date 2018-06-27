@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 import android.util.Log;
 import android.widget.ImageView;
 
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 import com.listory.songkang.utils.StringUtil;
 
 /**

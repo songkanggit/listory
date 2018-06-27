@@ -10,7 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.support.v7.widget.AppCompatSeekBar;
 import android.util.AttributeSet;
 
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 
 /**
  * Created by SouKou on 2018/1/12.

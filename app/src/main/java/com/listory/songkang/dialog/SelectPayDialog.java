@@ -10,7 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 
 import org.intellij.lang.annotations.MagicConstant;
 

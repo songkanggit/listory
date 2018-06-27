@@ -20,7 +20,7 @@ import com.listory.songkang.core.http.HttpService;
 import com.listory.songkang.core.logger.LoggerManager;
 import com.listory.songkang.core.logger.LoggerService;
 import com.listory.songkang.core.preference.PreferencesManager;
-import com.listory.songkang.listory.R;
+import com.listory.songkang.R;
 import com.soukou.swipeback.SwipeBackLayout;
 import com.soukou.swipeback.Utils;
 import com.soukou.swipeback.app.SwipeBackActivityBase;
