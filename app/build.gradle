@@ -25,6 +25,15 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    signingConfigs {
+        defaultSignature {
+            keyAlias 'liyang'
+            keyPassword 'liyang'
+            storeFile file('../keystore/liyang.keystore')
+            storePassword 'liyang'
+        }
+    }
+
     android.applicationVariants.all { variant ->
         variant.outputs.all {
             outputFileName = "${defaultConfig.applicationId}_${buildType.name}_V${defaultConfig.versionName}_${buildTime()}.apk"
@@ -43,7 +52,11 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:26.1.0'
     compile 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:+'
     compile 'com.google.zxing:core:3.2.1'
+
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.4'
+
+    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.4'
+
     annotationProcessor project(':permissions4m-processor')
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'

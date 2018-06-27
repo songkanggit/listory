@@ -10,6 +10,7 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,9 +56,10 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
     private TextViewFragment mTextViewFragment;
     private List<Fragment> mViewPagerData;
     private List<MelodyDetailBean> mMelodyList;
-    private TextView mTitleText;
+    private TextView mTitleText, mVipTip;
     private CollapsingToolbarLayout mCollapseToolbar;
     private AlbumDetailBean mAlbumDetailBean;
+    private FrameLayout mToBeVipFL;
     
     //==========================================Privilege request start====================================
     @Override
@@ -101,9 +103,13 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
         mViewPager = fvb(R.id.view_pager);
         mTitleText = fvb(R.id.tv_album_name);
         mCollapseToolbar = fvb(R.id.collapse_toolbar);
+
+        mVipTip = fvb(R.id.tv_vip_tip);
+        mToBeVipFL = fvb(R.id.fl_be_vip);
     }
     protected void assembleViewClickAffairs(){
         mBackView.setOnClickListener(this);
+        mToBeVipFL.setOnClickListener(this);
     }
     protected void initDataAfterUiAffairs(){
         mViewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager(), mViewPagerData));
@@ -114,6 +120,17 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
         mAlbumCover.setImageUrl(mAlbumDetailBean.albumCoverImage + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.ALBUM_RECT));
         mTitleText.setText(mAlbumDetailBean.albumName);
         mCollapseToolbar.setTitle(mAlbumDetailBean.albumName);
+        if(mAlbumDetailBean.isPrecious.equals("true")) {
+            mVipTip.setVisibility(View.VISIBLE);
+        } else {
+            mVipTip.setVisibility(View.GONE);
+        }
+        boolean isVip = mPreferencesManager.get(PreferenceConst.ACCOUNT_VIP, false);
+        if(!isVip && mAlbumDetailBean.isPrecious.equals("true")) {
+            mToBeVipFL.setVisibility(View.VISIBLE);
+        } else {
+            mToBeVipFL.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -122,31 +139,40 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
             case R.id.toolbar_back:
                 finish();
                 break;
+            case R.id.fl_be_vip:
+                if(playStateIntercept()) {
+                    startChargeVipActivity();
+                }
+                break;
         }
     }
 
     @Override
     public void onItemClick(View view, int position) {
-        ArrayList<MusicTrack> dataList = new ArrayList<>();
-        List<MelodyDetailBean> beanList = mAlbumListFragment.getDataList();
-        for(MelodyDetailBean bean: beanList) {
-            dataList.add(bean.convertToMusicTrack());
-        }
-        Intent broadcast = new Intent(MediaService.PLAY_ACTION);
-        broadcast.putParcelableArrayListExtra(MediaService.PLAY_ACTION_PARAM_LIST, dataList);
-        broadcast.putExtra(MediaService.PLAY_ACTION_PARAM_POSITION, position);
-        sendBroadcast(broadcast);
+        if(playStateIntercept()) {
+            ArrayList<MusicTrack> dataList = new ArrayList<>();
+            List<MelodyDetailBean> beanList = mAlbumListFragment.getDataList();
+            for(MelodyDetailBean bean: beanList) {
+                dataList.add(bean.convertToMusicTrack());
+            }
+            if(position >= 0 && position < dataList.size()) {
+                Intent broadcast = new Intent(MediaService.PLAY_ACTION);
+                broadcast.putParcelableArrayListExtra(MediaService.PLAY_ACTION_PARAM_LIST, dataList);
+                broadcast.putExtra(MediaService.PLAY_ACTION_PARAM_POSITION, position);
+                sendBroadcast(broadcast);
 
-        Intent intent = new Intent(AlbumActivity.this, MusicPlayActivity.class);
-        intent.putExtra(MusicPlayActivity.BUNDLE_DATA, beanList.get(position));
-        intent.putExtra(MusicPlayActivity.BUNDLE_DATA_PLAY, true);
-        startActivity(intent);
+                Intent intent = new Intent(AlbumActivity.this, MusicPlayActivity.class);
+                intent.putExtra(MusicPlayActivity.BUNDLE_DATA, beanList.get(position));
+                intent.putExtra(MusicPlayActivity.BUNDLE_DATA_PLAY, true);
+                startActivity(intent);
+            }
+        }
     }
 
     @Override
     public void onLikeClick(int position, RecyclerViewMelodyListAdapter.Callback callback) {
         List<MelodyDetailBean> beanList = mAlbumListFragment.getDataList();
-        if(playStateIntercept(true) && position >= 0 && position < beanList.size()) {
+        if(playStateIntercept() && position >= 0 && position < beanList.size()) {
             WeakReference<RecyclerViewMelodyListAdapter.Callback> weakReference = new WeakReference<>(callback);
             JSONObject param = new JSONObject();
             try {
@@ -174,13 +200,13 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
     }
 
     private void startChargeVipActivity() {
-//        Intent intent = new Intent(AlbumActivity.this, ChargeVipActivity.class);
-//        startActivity(intent);
+        Intent intent = new Intent(AlbumActivity.this, ChargeVipActivity.class);
+        startActivity(intent);
     }
 
-    private boolean playStateIntercept(boolean redirectLogin) {
+    private boolean playStateIntercept() {
         int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
-        if(!mAlbumDetailBean.isPrecious.equals("true") && !redirectLogin) {
+        if(!mAlbumDetailBean.isPrecious.equals("true")) {
             return true;
         }
         if(accountId == -1) {

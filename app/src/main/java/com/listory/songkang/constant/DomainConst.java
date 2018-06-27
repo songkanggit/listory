@@ -11,7 +11,7 @@ public class DomainConst {
     public static final String DOMAIN = "https://admin.liyangstory.com";
     public static final String PICTURE_DOMAIN = "http://img.liyangstory.com";
     public static final String MEDIA_DOMAIN = "http://video.liyangstory.com";
-    public static final String DOMAIN_LOCAL = "http://10.96.155.103:8080/storytree";
+    public static final String DOMAIN_LOCAL = "http://10.96.155.101:8080/storytree";
 
     public static final String ACCOUNT_INFO_URL = DOMAIN + "/account/query.do";
     public static final String ACCOUNT_UPDATE_URL = DOMAIN + "/account/update.do";

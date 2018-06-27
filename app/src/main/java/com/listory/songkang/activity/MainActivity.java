@@ -66,12 +66,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import static com.listory.songkang.alipay.AlipayConfig.SDK_PAY_FLAG;
 import static com.listory.songkang.service.MediaService.PLAY_ACTION_PARAM_LIST;
 import static com.listory.songkang.service.MediaService.PLAY_ACTION_PARAM_POSITION;
 
@@ -86,8 +83,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private ImageView mPlayControlImageView, mToolbarOpen, mToolbarQR;
     private TextView mMelodyNameTV;
     private ObjectAnimator mRotateObjectAnimation;
-    private AlipayHandler mAlipayHandler;
-    private MusicTrack mCurrentMusicTrack;
+    private MusicTrack mMusicTrack;
     private Bitmap mDefaultLoadBitMap;
 
     private RelativeLayout mContentRL;
@@ -111,8 +107,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             switch (action) {
                 case MediaService.PLAY_STATE_UPDATE:
                     MusicTrack musicTrack = intent.getParcelableExtra(MediaService.PLAY_STATE_UPDATE_DATA);
-                    if(musicTrack != null && !musicTrack.equals(mCurrentMusicTrack)) {
-                        mCurrentMusicTrack = musicTrack;
+                    if(musicTrack != null && !musicTrack.equals(mMusicTrack)) {
+                        mMusicTrack = musicTrack;
                     }
                     updatePlayInfo();
                     break;
@@ -142,40 +138,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         Toast.makeText(MainActivity.this, "请开启存储授权", Toast.LENGTH_SHORT).show();
     }
     //==========================================Privilege request end====================================
-
-    private static class AlipayHandler extends Handler {
-        private WeakReference<Activity> mActivity;
-        public AlipayHandler(Activity activity) {
-            mActivity = new WeakReference<>(activity);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case SDK_PAY_FLAG: {
-                    @SuppressWarnings("unchecked")
-                    PayResult payResult = new PayResult((Map<String, String>) msg.obj);
-                    /**
-                     对于支付结果，请商户依赖服务端的异步通知结果。同步通知结果，仅作为支付结束的通知。
-                     */
-                    String resultInfo = payResult.getResult();// 同步返回需要验证的信息
-                    String resultStatus = payResult.getResultStatus();
-                    // 判断resultStatus 为9000则代表支付成功
-                    if (TextUtils.equals(resultStatus, "9000")) {
-                        // 该笔订单是否真实支付成功，需要依赖服务端的异步通知。
-                        Toast.makeText(mActivity.get(), "支付成功", Toast.LENGTH_SHORT).show();
-//                        mActivity.get().finish();
-                    } else {
-                        // 该笔订单真实的支付结果，需要依赖服务端的异步通知。
-                        Toast.makeText(mActivity.get(), "支付失败", Toast.LENGTH_SHORT).show();
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-    }
+    
     protected void parseNonNullBundle(Bundle bundle){
 
     }
@@ -183,7 +146,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mDefaultLoadBitMap = BitmapFactory.decodeResource(getResources(), R.mipmap.default_banner_bg);
         IntentFilter intentFilter = new IntentFilter(MediaService.PLAY_STATE_UPDATE);
         registerReceiver(mIntentReceiver, intentFilter);
-        mAlipayHandler = new AlipayHandler(MainActivity.this);
         mBannerItemList = new ArrayList<>();
         mCoreContext.executeAsyncTask(new Runnable() {
             @Override
@@ -208,7 +170,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     bean.mItemIconUrl = bean.coverImageUrl;
                     bean.mTags = bean.tags;
                     bean.mPrecious = bean.isPrecious;
-                    mCurrentMusicTrack = bean.convertToMusicTrack();
+                    mMusicTrack = bean.convertToMusicTrack();
                     runOnUiThread(() -> updatePlayInfo());
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -299,7 +261,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 break;
             case R.id.circle_view: {
                 ArrayList<MusicTrack> dataList = new ArrayList<>();
-                dataList.add(mCurrentMusicTrack);
+                dataList.add(mMusicTrack);
                 Intent broadcast = new Intent(MediaService.PLAY_ACTION);
                 broadcast.putParcelableArrayListExtra(PLAY_ACTION_PARAM_LIST, dataList);
                 broadcast.putExtra(PLAY_ACTION_PARAM_POSITION, -1);
@@ -420,10 +382,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     private void updatePlayInfo() {
-        if(mCurrentMusicTrack != null) {
-            final String imageUrl = mCurrentMusicTrack.mCoverImageUrl + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.MELODY_SQUARE_S);
+        if(mMusicTrack != null) {
+            final String imageUrl = mMusicTrack.mCoverImageUrl + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.MELODY_SQUARE_S);
             mCircleView.setImageUrl(imageUrl);
-            mMelodyNameTV.setText(mCurrentMusicTrack.mTitle);
+            mMelodyNameTV.setText(mMusicTrack.mTitle);
         }
 
         if(MusicPlayer.getInstance().isPlaying()) {
@@ -464,21 +426,23 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 int pos = getRealPosition(position);
                 if(pos >= 0 && pos < mBannerItemList.size()) {
                     JSONObject temp = (JSONObject) mBannerItemList.get(pos).getData();
-                    AlbumDetailBean bean = new AlbumDetailBean();
-                    try {
-                        bean.id = temp.getLong("id");
-                        bean.albumName = temp.getString("albumName");
-                        bean.albumCoverImage = DomainConst.PICTURE_DOMAIN + temp.getString("albumCoverImage");
-                        bean.albumAbstract = temp.getString("albumAbstract");
-                        bean.isPrecious = temp.getString("albumPrecious");
-                        bean.mItemTitle = bean.albumName;
-                        bean.mItemIconUrl = bean.albumCoverImage;
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    if(temp != null) {
+                        AlbumDetailBean bean = new AlbumDetailBean();
+                        try {
+                            bean.id = temp.getLong("id");
+                            bean.albumName = temp.getString("albumName");
+                            bean.albumCoverImage = DomainConst.PICTURE_DOMAIN + temp.getString("albumCoverImage");
+                            bean.albumAbstract = temp.getString("albumAbstract");
+                            bean.isPrecious = temp.getString("albumPrecious");
+                            bean.mItemTitle = bean.albumName;
+                            bean.mItemIconUrl = bean.albumCoverImage;
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
+                        intent.putExtra(AlbumActivity.BUNDLE_DATA, bean);
+                        startActivity(intent);
                     }
-                    Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
-                    intent.putExtra(AlbumActivity.BUNDLE_DATA, bean);
-                    startActivity(intent);
                 }
             });
             container.addView(view);

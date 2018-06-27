@@ -5,8 +5,6 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
 
-    <string name="album_title_0">简介</string>
-    <string name="album_title_1">故事</string>
     <string name="login_tip">请先登陆!</string>
     <string name="vip_tip">请先成为会员</string>
     <string name="app_load_more">加载更多</string>
@@ -18,6 +16,10 @@
 
     <string name="app_close">关闭</string>
 
+    <!-- Album Activity -->
+    <string name="album_title_0">简介</string>
+    <string name="album_title_1">故事</string>
+    <string name="album_vip_tip">(VIP会员)</string>
     <!-- Wei xin tips-->
     <string name="wx_not_installed">您未安装微信客户端？</string>
 
