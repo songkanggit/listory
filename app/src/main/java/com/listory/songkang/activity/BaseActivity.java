@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import com.listory.songkang.core.CoreApplication;
 import com.listory.songkang.core.CoreContext;
 import com.listory.songkang.core.connection.NetworkManager;
+import com.listory.songkang.core.download.DownLoadManager;
 import com.listory.songkang.core.http.HttpManager;
 import com.listory.songkang.core.http.HttpService;
 import com.listory.songkang.core.logger.LoggerManager;
@@ -37,6 +38,7 @@ public abstract class BaseActivity extends AppCompatActivity  implements SwipeBa
     protected PreferencesManager mPreferencesManager;
     protected NetworkManager mNetworkManager;
     protected LoggerService mLoggerService;
+    protected DownLoadManager mDownloadManager;
     protected HttpService mHttpService;
     protected ViewGroup mRootVG;
     protected Toolbar mToolBar;
@@ -56,6 +58,7 @@ public abstract class BaseActivity extends AppCompatActivity  implements SwipeBa
         mNetworkManager = mCoreContext.getApplicationService(NetworkManager.class);
         mPreferencesManager = mCoreContext.getApplicationService(PreferencesManager.class);
         mHttpService = mCoreContext.getApplicationService(HttpManager.class);
+        mDownloadManager = mCoreContext.getApplicationService(DownLoadManager.class);
         parseIntent(getIntent());
 
         initDataIgnoreUi();

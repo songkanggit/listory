@@ -48,8 +48,6 @@
         <service
             android:name="com.listory.songkang.service.MediaService"
             android:process=":media" />
-        <service android:name="com.listory.songkang.service.downloader.DownLoadService"/>
-
         <activity android:name="com.listory.songkang.activity.LoginActivity"
             android:launchMode="singleTop"/>
         <activity android:name="com.listory.songkang.activity.ChargeVipActivity"

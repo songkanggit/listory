@@ -1,4 +1,4 @@
-package com.listory.songkang.service.downloader;
+package com.listory.songkang.core.download;
 
 /**
  * 类功能描述：</br>

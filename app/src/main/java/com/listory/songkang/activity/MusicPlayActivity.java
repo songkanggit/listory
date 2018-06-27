@@ -19,7 +19,11 @@ import android.widget.Toast;
 
 import com.listory.songkang.adapter.RecyclerViewMelodyListSimpleAdapter;
 import com.listory.songkang.bean.MelodyDetailBean;
+import com.listory.songkang.bean.SQLDownLoadInfo;
+import com.listory.songkang.constant.DomainConst;
 import com.listory.songkang.constant.PreferenceConst;
+import com.listory.songkang.core.download.DownLoadListener;
+import com.listory.songkang.core.download.DownLoadManager;
 import com.listory.songkang.dialog.MelodyListDialog;
 import com.listory.songkang.helper.HttpHelper;
 import com.listory.songkang.listory.R;
@@ -30,19 +34,21 @@ import com.listory.songkang.utils.BitmapUtil;
 import com.listory.songkang.utils.DensityUtil;
 import com.listory.songkang.utils.GussBlurUtil;
 import com.listory.songkang.utils.QiniuImageUtil;
-import com.listory.songkang.utils.StringUtil;
 import com.listory.songkang.view.CachedImageView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class MusicPlayActivity extends BaseActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener, RecyclerViewMelodyListSimpleAdapter.OnItemClickListener {
+public class MusicPlayActivity extends BaseActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener,
+        RecyclerViewMelodyListSimpleAdapter.OnItemClickListener, DownLoadListener {
     public static final String BUNDLE_DATA = "data";
     public static final String BUNDLE_DATA_PLAY = "data_play";
 
@@ -152,6 +158,8 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
         if(mIsAutoPlay) {
             MusicPlayer.getInstance().play();
         }
+        mRepeatMode = MusicPlayer.getInstance().getRepeatMode();
+        toggleRepeatMode(false);
         updateMusicInfo(mMusicTrack ,true);
     }
 
@@ -179,6 +187,30 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
                 finish();
                 break;
             case R.id.iv_download:
+            {
+                if(isLogin) {
+                    int taskState = mDownloadManager.addTask(mMusicTrack);
+                    if(taskState == DownLoadManager.TaskState.TASK_OK) {
+                        mDownloadManager.setSingleTaskListener(String.valueOf(mMusicTrack.mId), this);
+                    } else {
+                        int toastRes = R.string.already_downloaded;
+                        switch (taskState) {
+                            case DownLoadManager.TaskState.TASK_EXIST:
+                                toastRes = R.string.download_task_exist;
+                                break;
+                            case DownLoadManager.TaskState.TASK_MAX:
+                                toastRes = R.string.download_over_max;
+                                break;
+                            case DownLoadManager.TaskState.TASK_COMPLETE:
+                                toastRes = R.string.already_downloaded;
+                                break;
+                        }
+                        Toast.makeText(getApplicationContext(), toastRes, Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    startLoginActivity();
+                }
+            }
                 break;
             case R.id.iv_like:
                 if(isLogin) {
@@ -216,7 +248,7 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
             case R.id.iv_random_repeat:
                 mRepeatMode = (mRepeatMode + 1) % 3;
                 MusicPlayer.getInstance().setRepeatMode(mRepeatMode);
-                changeRepeatMode();
+                toggleRepeatMode(true);
                 break;
             case R.id.iv_previous:
                 if(MusicPlayer.getInstance().goToPrevious()) {
@@ -260,6 +292,34 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
         mMelodyListDialog.dismiss();
     }
 
+    @Override
+    public void onStart(SQLDownLoadInfo sqlDownLoadInfo) {
+        runOnUiThread(() -> Toast.makeText(getApplicationContext(), R.string.downloading, Toast.LENGTH_SHORT).show());
+    }
+
+    @Override
+    public void onProgress(SQLDownLoadInfo sqlDownLoadInfo, boolean isSupportBreakpoint, int progress) {
+
+    }
+
+    @Override
+    public void onStop(SQLDownLoadInfo sqlDownLoadInfo, boolean isSupportBreakpoint) {
+
+    }
+
+    @Override
+    public void onError(SQLDownLoadInfo sqlDownLoadInfo) {
+
+    }
+
+    @Override
+    public void onSuccess(SQLDownLoadInfo sqlDownLoadInfo) {
+        runOnUiThread(() -> {
+            if(Long.valueOf(sqlDownLoadInfo.getTaskID()) == mMusicTrack.mId)
+                mDownloadIV.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.music_play_download_success));
+        });
+    }
+
     private void showPopWindow() {
         if(mMelodyListDialog == null) {
             mMelodyListDialog = new MelodyListDialog(MusicPlayActivity.this, MusicPlayer.getInstance().getMusicTrackList());
@@ -289,19 +349,23 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
         mRepeatRandomIV.setEnabled(enable);
     }
 
-    private void changeRepeatMode() {
+    private void toggleRepeatMode(boolean showToast) {
         int resId = R.mipmap.music_player_repeat_all;
+        int toastRes = R.string.repeat_play_all;
         switch (mRepeatMode) {
             case MediaService.RepeatMode.REPEAT_RANDOM:
                 resId = R.mipmap.music_player_random;
+                toastRes = R.string.random_play;
                 break;
             case MediaService.RepeatMode.REPEAT_CURRENT:
                 resId = R.mipmap.music_player_repeat;
+                toastRes = R.string.repeat_play;
                 break;
             default:
                 break;
         }
         mRepeatRandomIV.setImageBitmap(BitmapFactory.decodeResource(getResources(), resId));
+        if(showToast)Toast.makeText(getApplicationContext(), toastRes, Toast.LENGTH_SHORT).show();
     }
 
     private void updateMusicInfo(MusicTrack musicTrack, boolean force) {
@@ -320,6 +384,37 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
                 }
             }));
             mMelodyNameTV.setText(mMusicTrack.mTitle);
+            mFavoriteIV.setImageResource(R.mipmap.melody_unlike);
+            mDownloadIV.setImageResource(R.mipmap.music_player_download);
+            if(isLogin()) {
+                mCoreContext.executeAsyncTask(() -> {
+                    try {
+                        JSONObject secondParam = new JSONObject();
+                        secondParam.put("id", mMusicTrack.mId);
+                        secondParam.put("accountId", String.valueOf(mAccountId));
+                        String secondResponse = mHttpService.post(DomainConst.MELODY_ITEM_URL, secondParam.toString());
+                        JSONObject secondObject = new JSONObject(secondResponse);
+                        final JSONObject temp = secondObject.getJSONObject("data");
+                        final boolean isFavorite = temp.getString("favorated").equals("true") ? true : false;
+                        runOnUiThread(() -> {
+                            if (isFavorite) {
+                                mFavoriteIV.setImageResource(R.mipmap.music_player_like);
+                            }
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+            ArrayList<SQLDownLoadInfo> downLoadInfoArrayList = mDownloadManager.getUserDownloadInfoList(String.valueOf(mAccountId));
+            for(SQLDownLoadInfo info:downLoadInfoArrayList) {
+                if(info.getTaskID().equals(String.valueOf(mMusicTrack.mId))) {
+                    mDownloadIV.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.music_play_download_success));
+                    break;
+                }
+            }
         }
         if(MusicPlayer.getInstance().isPlaying()) {
             mPauseResumeIV.setImageResource(R.mipmap.music_player_pause);

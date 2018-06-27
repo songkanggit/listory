@@ -1,4 +1,4 @@
-package com.listory.songkang.service.downloader;
+package com.listory.songkang.core.download;
 
 
 import com.listory.songkang.bean.SQLDownLoadInfo;

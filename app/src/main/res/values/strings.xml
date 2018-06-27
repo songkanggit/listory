@@ -83,4 +83,9 @@
 
     <!-- Download Activity-->
     <string name="download_activity_title">我的下载</string>
+
+    <!-- Activity Play -->
+    <string name="random_play">随机播放</string>
+    <string name="repeat_play">单曲循环</string>
+    <string name="repeat_play_all">全部循环</string>
 </resources>

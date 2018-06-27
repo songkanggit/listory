@@ -5,7 +5,7 @@
 //  Created by LuTH on 2011-12-17.
 //  Copyright 2011 flyrise. All rights reserved.
 //
-package com.listory.songkang.service.downloader;
+package com.listory.songkang.core.download;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

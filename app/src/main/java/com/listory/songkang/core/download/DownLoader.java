@@ -1,8 +1,10 @@
-package com.listory.songkang.service.downloader;
+package com.listory.songkang.core.download;
 
+import android.Manifest;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.RequiresPermission;
 import android.util.Log;
 
 import com.listory.songkang.bean.SQLDownLoadInfo;
@@ -294,7 +296,8 @@ public class DownLoader {
             }
             mDownloadHandler.sendEmptyMessage(TASK_STOP);
         }
-        
+
+        @RequiresPermission(allOf = {Manifest.permission.READ_EXTERNAL_STORAGE})
         private void openConnection() throws Exception{
             long urlFileSize = urlConn.getContentLength();
             if(urlFileSize > 0){

@@ -1,5 +1,5 @@
 
-package com.listory.songkang.service.downloader;
+package com.listory.songkang.core.download;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -7,6 +7,8 @@ import android.util.Log;
 
 
 import com.listory.songkang.bean.SQLDownLoadInfo;
+import com.listory.songkang.core.BaseCoreManager;
+import com.listory.songkang.core.CoreContext;
 import com.listory.songkang.service.MusicTrack;
 
 import org.intellij.lang.annotations.MagicConstant;
@@ -28,10 +30,11 @@ import java.util.concurrent.TimeUnit;
  * </p>
  */
 
-public class DownLoadManager {
+public class DownLoadManager extends BaseCoreManager {
     public static final String DEFAULT_USER = "guest";
 
     private static final String TAG = DownLoadManager.class.getSimpleName();
+    private CoreContext mCoreContext;
     private Context mContext;
     private volatile ArrayList<DownLoader> mTaskList = new ArrayList<>();
     private final int MAX_DOWNLOADING_TASK = 5; // 最大同时下载数
@@ -51,9 +54,20 @@ public class DownLoadManager {
         int TASK_COMPLETE = 3;
     }
 
-    public DownLoadManager(Context context) {
-        mContext = context;
+    public DownLoadManager(CoreContext context) {
+        mCoreContext = context;
+        mContext = mCoreContext.getBaseContext();
         init();
+    }
+
+    @Override
+    public int order() {
+        return ORDER.NETWORK;
+    }
+
+    @Override
+    public void freeMemory() {
+
     }
 
     private DownLoader.DownLoadSuccess mDownloadSuccessListener = taskId -> {

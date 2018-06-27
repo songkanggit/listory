@@ -20,8 +20,6 @@ import com.listory.songkang.helper.HttpHelper;
 import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicTrack;
-import com.listory.songkang.service.downloader.DownLoadManager;
-import com.listory.songkang.service.downloader.DownLoadService;
 import com.listory.songkang.view.layout.SwipeItemLayout;
 
 import org.json.JSONException;
@@ -114,7 +112,6 @@ public class MyDownLoadActivity extends BaseActivity implements View.OnClickList
             }
 
             HttpHelper.requestLikeMelody(mCoreContext, param, responseBean -> runOnUiThread(() -> {
-                DownLoadManager manager = DownLoadService.getDownLoadManager();
                 SQLDownLoadInfo downLoadInfo = null;
                 if(position >= 0 && position < mDownLoadInfoList.size()) {
                     downLoadInfo = mDownLoadInfoList.get(position);
@@ -133,7 +130,7 @@ public class MyDownLoadActivity extends BaseActivity implements View.OnClickList
                     }
                 }
                 if(downLoadInfo != null) {
-                    manager.updateSQLDownLoadInfo(downLoadInfo);
+                    mDownloadManager.updateSQLDownLoadInfo(downLoadInfo);
                 }
             }));
         }
@@ -146,12 +143,11 @@ public class MyDownLoadActivity extends BaseActivity implements View.OnClickList
 
     @Override
     public void onDeleteClick(int position) {
-        DownLoadManager downLoadManager = DownLoadService.getDownLoadManager();
         int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
         if(accountId != -1 && position >= 0 && position < mMelodyBeanList.size()) {
             final String userId = String.valueOf(accountId);
             final String taskId = String.valueOf(mMelodyBeanList.get(position).id);
-            if(downLoadManager.deleteUserDownloadMelody(userId, taskId)) {
+            if(mDownloadManager.deleteUserDownloadMelody(userId, taskId)) {
                 Toast.makeText(MyDownLoadActivity.this, R.string.app_delete_success, Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(MyDownLoadActivity.this, R.string.app_delete_failed, Toast.LENGTH_SHORT).show();
@@ -179,10 +175,9 @@ public class MyDownLoadActivity extends BaseActivity implements View.OnClickList
 
     private void requestDownloadData() {
         mSwipeRefreshLayout.setRefreshing(true);
-        DownLoadManager downLoadManager = DownLoadService.getDownLoadManager();
         int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
         if(accountId != -1) {
-            mDownLoadInfoList = downLoadManager.getUserDownloadInfoList(String.valueOf(accountId));
+            mDownLoadInfoList = mDownloadManager.getUserDownloadInfoList(String.valueOf(accountId));
             mMelodyBeanList.clear();
             for(SQLDownLoadInfo info:mDownLoadInfoList) {
                 MelodyDetailBean bean = new MelodyDetailBean();

@@ -21,9 +21,8 @@ import com.listory.songkang.helper.HttpHelper;
 import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicTrack;
-import com.listory.songkang.service.downloader.DownLoadListener;
-import com.listory.songkang.service.downloader.DownLoadManager;
-import com.listory.songkang.service.downloader.DownLoadService;
+import com.listory.songkang.core.download.DownLoadListener;
+import com.listory.songkang.core.download.DownLoadManager;
 import com.listory.songkang.utils.StringUtil;
 
 import org.json.JSONException;
@@ -169,10 +168,9 @@ public class MyFavoriteActivity extends BaseActivity implements View.OnClickList
             MelodyDetailBean bean = mMelodyBeanList.get(position);
             if(bean != null) {
                 WeakReference<RecyclerViewMelodyListAdapter.Callback> weakReference = new WeakReference<>(callback);
-                DownLoadManager manager = DownLoadService.getDownLoadManager();
-                int taskState = manager.addTask(bean.convertToMusicTrack());
+                int taskState = mDownloadManager.addTask(bean.convertToMusicTrack());
                 if(taskState == DownLoadManager.TaskState.TASK_OK) {
-                    manager.setAllTaskListener(new DownLoadListener() {
+                    mDownloadManager.setAllTaskListener(new DownLoadListener() {
                         @Override
                         public void onStart(SQLDownLoadInfo sqlDownLoadInfo) {
                             runOnUiThread(() -> Toast.makeText(getApplicationContext(), R.string.downloading, Toast.LENGTH_SHORT).show());
@@ -274,9 +272,8 @@ public class MyFavoriteActivity extends BaseActivity implements View.OnClickList
 
     private void retrieveDownloadedMelodyInfo() {
         int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
-        DownLoadManager manager = DownLoadService.getDownLoadManager();
         if(accountId != -1) {
-            ArrayList<SQLDownLoadInfo> downLoadInfoArrayList = manager.getUserDownloadInfoList(String.valueOf(accountId));
+            ArrayList<SQLDownLoadInfo> downLoadInfoArrayList = mDownloadManager.getUserDownloadInfoList(String.valueOf(accountId));
             HashMap<String, SQLDownLoadInfo> localMelodyMap = new HashMap<>();
             for(SQLDownLoadInfo info:downLoadInfoArrayList) {
                 localMelodyMap.put(info.getTaskID(), info);

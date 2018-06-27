@@ -22,7 +22,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
@@ -57,8 +56,7 @@ import com.listory.songkang.listory.R;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
 import com.listory.songkang.service.MusicTrack;
-import com.listory.songkang.service.downloader.DownLoadManager;
-import com.listory.songkang.service.downloader.DownLoadService;
+import com.listory.songkang.core.download.DownLoadManager;
 import com.listory.songkang.transformer.ScaleInTransformer;
 import com.listory.songkang.utils.DensityUtil;
 import com.listory.songkang.utils.IPUtils;
@@ -66,7 +64,6 @@ import com.listory.songkang.utils.QiniuImageUtil;
 import com.listory.songkang.utils.StringUtil;
 import com.listory.songkang.view.AutoLoadImageView;
 import com.listory.songkang.view.AvatarCircleView;
-import com.squareup.haha.perflib.Main;
 import com.tencent.mm.opensdk.modelpay.PayReq;
 
 import org.intellij.lang.annotations.MagicConstant;
@@ -664,20 +661,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     private void updateUserInfo() {
         int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
-        DownLoadManager manager = DownLoadService.getDownLoadManager();
         if(accountId != -1) {
-            if(manager != null) {
-                manager.changeUser(String.valueOf(accountId));
-            }
+            mDownloadManager.changeUser(String.valueOf(accountId));
             mVipFlagIV.setVisibility(View.VISIBLE);
             mHintTV.setVisibility(View.VISIBLE);
             mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_login_logo));
             mExitLL.setVisibility(View.VISIBLE);
             syncAccountInfoFromServer();
         } else {
-            if(manager != null) {
-                manager.changeUser(DownLoadManager.DEFAULT_USER);
-            }
+            mDownloadManager.changeUser(DownLoadManager.DEFAULT_USER);
             mVipFlagIV.setVisibility(View.GONE);
             mHintTV.setVisibility(View.GONE);
             mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_logout_logo));
