@@ -333,7 +333,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 break;
             case R.id.ll_download:
                 if(isLogin) {
-
+                    Intent intent = new Intent(MainActivity.this, MyDownLoadActivity.class);
+                    startActivity(intent);
                 } else {
                     startLoginActivity();
                 }

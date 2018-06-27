@@ -30,7 +30,6 @@
         <activity
             android:name="com.listory.songkang.activity.MusicPlayActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_music_player"
             android:launchMode="singleInstance"
             android:theme="@style/FullscreenTheme" />
         <activity
@@ -60,6 +59,8 @@
         <activity android:name="com.listory.songkang.activity.coupon.CouponResultActivity"
             android:launchMode="singleTop"/>
         <activity android:name="com.google.zxing.activity.CaptureActivity"
+            android:launchMode="singleTop"/>
+        <activity android:name="com.listory.songkang.activity.MyDownLoadActivity"
             android:launchMode="singleTop"/>
     </application>
 
