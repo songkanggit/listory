@@ -121,6 +121,10 @@
     <string name="already_downloaded">已下载，请在下载列表里查看</string>
     <string name="downloading">正在下载...</string>
 
+    <!-- Activity Capture-->
+    <string name="qr_code">二维码</string>
+    <string name="caption_from_gallery">从相册选取二维码</string>
+
     <!-- Left Nav -->
     <string name="nav_login_register">登录/注册</string>
     <string name="nav_favorite">我的收藏</string>

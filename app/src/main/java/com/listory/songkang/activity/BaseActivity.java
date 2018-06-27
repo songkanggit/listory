@@ -67,7 +67,6 @@ public abstract class BaseActivity extends AppCompatActivity  implements SwipeBa
         mRootVG = fvb(R.id.contentPanel);
 
         mToolBar = fvb(R.id.toolbar);
-        mToolBar.setTitle("");
         setSupportActionBar(mToolBar);
 
         viewAffairs();

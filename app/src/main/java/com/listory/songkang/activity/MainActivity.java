@@ -34,6 +34,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.zxing.activity.CaptureActivity;
 import com.joker.annotation.PermissionsDenied;
 import com.joker.annotation.PermissionsGranted;
 import com.joker.annotation.PermissionsRationale;
@@ -91,7 +92,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private List<BannerItemBean> mBannerItemList;
     private ViewPager mViewPager;
     private AvatarCircleView mCircleView, mHeadImageCircleView;
-    private ImageView mPlayControlImageView;
+    private ImageView mPlayControlImageView, mToolbarOpen, mToolbarQR;
     private TextView mMelodyNameTV;
     private ObjectAnimator mRotateObjectAnimation;
     private AlipayHandler mAlipayHandler;
@@ -234,6 +235,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mCircleView = fvb(R.id.circle_view);
         mHeadImageCircleView = fvb(R.id.head_image_view);
         mMelodyNameTV = fvb(R.id.tv_melody_name);
+        mToolbarOpen = fvb(R.id.toolbar_nav);
+        mToolbarQR = fvb(R.id.toolbar_qr);
 
         mContentRL = fvb(R.id.rl_content);
         mFavoriteLL = fvb(R.id.ll_favorite);
@@ -249,7 +252,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     protected void assembleViewClickAffairs(){
         mCircleView.setOnClickListener(this);
         mPlayControlImageView.setOnClickListener(this);
-
+        mToolbarOpen.setOnClickListener(this);
+        mToolbarQR.setOnClickListener(this);
         mContentRL.setOnClickListener(this);
         mFavoriteLL.setOnClickListener(this);
         mDownloadLL.setOnClickListener(this);
@@ -281,16 +285,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                mDrawerLayout.openDrawer(GravityCompat.START);
-                break;
-        }
-        return true;
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         updateUserInfo();
@@ -300,6 +294,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     public void onClick(View view) {
         final boolean isLogin = isLogin();
         switch (view.getId()) {
+            case R.id.toolbar_nav:
+            {
+                mDrawerLayout.openDrawer(GravityCompat.START);
+            }
+                break;
+            case R.id.toolbar_qr:
+            {
+                Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
+                startActivity(intent);
+            }
+                break;
             case R.id.circle_view: {
                 ArrayList<MusicTrack> dataList = new ArrayList<>();
                 dataList.add(mCurrentMusicTrack);

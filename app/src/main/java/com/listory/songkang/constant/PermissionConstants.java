@@ -21,9 +21,9 @@ import java.lang.annotation.RetentionPolicy;
 public final class PermissionConstants {
     public static final int STORAGE_READ_CODE = 3;
     public static final int STORAGE_WRITE_CODE = 4;
-    public static final int CALENDAR_CODE = 5;
-    public static final int SENSORS_CODE = 6;
-    public static final int LOCATION_CODE = 7;
+    public static final int CAMERA_CODE = 5;
+    public static final int VIBRATE_CODE = 6;
+    public static final int FLASH_CODE = 7;
     public static final int CALL_LOG_CODE = 8;
     public static final int AUDIO_CODE = 9;
     public static final int READ_CONTACTS_CODE = 10;

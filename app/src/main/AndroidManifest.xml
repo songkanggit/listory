@@ -59,6 +59,8 @@
             android:launchMode="singleTop"/>
         <activity android:name="com.listory.songkang.activity.coupon.CouponResultActivity"
             android:launchMode="singleTop"/>
+        <activity android:name="com.google.zxing.activity.CaptureActivity"
+            android:launchMode="singleTop"/>
     </application>
 
 </manifest>

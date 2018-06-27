@@ -99,4 +99,11 @@
         <item name="android:textSize">@dimen/sp12</item>
         <item name="android:textColor">@color/color333333</item>
     </style>
+
+    <style name="toolbar_image_view_style">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+    </style>
 </resources>

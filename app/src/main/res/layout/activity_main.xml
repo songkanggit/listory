@@ -17,25 +17,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/colorPrimary"
-            android:gravity="center"
             android:minHeight="?attr/actionBarSize"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:contentInsetStart="@dimen/dp0"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:navigationIcon="@mipmap/activity_main_nav">
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+            <ImageView
+                android:id="@+id/toolbar_nav"
+                style="@style/toolbar_image_view_style"
+                android:layout_gravity="left"
+                android:src="@mipmap/activity_main_nav"/>
             <ImageView
                 android:id="@+id/toolbar_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:layout_gravity="center"
-                android:gravity="center_vertical"
+                android:layout_gravity="center_vertical"
                 android:src="@mipmap/activity_main_title_bg"/>
             <ImageView
-                android:layout_width="@dimen/dp45"
-                android:layout_height="@dimen/dp45"
-                android:padding="@dimen/dp12"
-                android:layout_marginLeft="@dimen/dp20"
+                android:id="@+id/toolbar_qr"
+                style="@style/toolbar_image_view_style"
                 android:layout_gravity="right"
                 android:src="@mipmap/activity_main_qr"/>
         </android.support.v7.widget.Toolbar>
