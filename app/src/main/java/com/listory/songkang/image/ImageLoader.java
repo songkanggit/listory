@@ -1,6 +1,8 @@
 package com.listory.songkang.image;
 
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -38,12 +40,29 @@ public class ImageLoader {
         mNetCacheUtils=new NetCacheUtils(mLocalCacheUtils, mMemoryCacheUtils);
     }
 
+    public Bitmap getCachedBitmap(Resources res, final String url) {
+        Bitmap bitmap = BitmapFactory.decodeResource(res, R.drawable.default_logo);
+        if(!StringUtil.isEmpty(url)){
+            //内存缓存
+            Log.i(TAG, "Load from memory.");
+            bitmap = mMemoryCacheUtils.getBitmapFromMemory(url);
+            if (bitmap == null){
+                bitmap = mLocalCacheUtils.getBitmapFromLocal(url);
+                if(bitmap != null){
+                    mMemoryCacheUtils.setBitmapToMemory(url,bitmap);
+                }
+            }
+        }
+        return bitmap;
+    }
+
     /**
      * 加载网络图片
-     * @param mImageView
+     * @param imageView
      * @param url
      */
-    public void loadImageView(ImageView mImageView, String url) {
+    public void loadImageView(ImageView imageView, String url) {
+//        imageView.setImageResource(R.drawable.wx_share);
         if(StringUtil.isEmpty(url)){
             return;
         }
@@ -52,7 +71,7 @@ public class ImageLoader {
         Log.i(TAG, "Load from memory.");
         bitmap=mMemoryCacheUtils.getBitmapFromMemory(url);
         if (bitmap!=null){
-            mImageView.setImageBitmap(bitmap);
+            imageView.setImageBitmap(bitmap);
             return;
         }
 
@@ -60,14 +79,14 @@ public class ImageLoader {
         Log.i(TAG,"Load from local.");
         bitmap = mLocalCacheUtils.getBitmapFromLocal(url);
         if(bitmap !=null){
-            mImageView.setImageBitmap(bitmap);
+            imageView.setImageBitmap(bitmap);
             //从本地获取图片后,保存至内存中
             mMemoryCacheUtils.setBitmapToMemory(url,bitmap);
             return;
         }
         //网络缓存
         Log.i(TAG,"Load form internet.");
-        mNetCacheUtils.getBitmapFromNet(mImageView,url);
+        mNetCacheUtils.getBitmapFromNet(imageView,url);
     }
 
     /**
@@ -85,6 +104,7 @@ public class ImageLoader {
         Log.i(TAG, "Load from memory.");
         bitmap=mMemoryCacheUtils.getBitmapFromMemory(url);
         if (bitmap!=null){
+            if(imageView != null)
             imageView.setImageBitmap(bitmap);
             if(callback != null) {
                 callback.onImageLoadComplete(url);
@@ -96,6 +116,7 @@ public class ImageLoader {
         Log.i(TAG,"Load from local.");
         bitmap = mLocalCacheUtils.getBitmapFromLocal(url);
         if(bitmap !=null){
+            if(imageView != null)
             imageView.setImageBitmap(bitmap);
             //从本地获取图片后,保存至内存中
             mMemoryCacheUtils.setBitmapToMemory(url,bitmap);

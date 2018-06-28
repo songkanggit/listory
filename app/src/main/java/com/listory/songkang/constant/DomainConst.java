@@ -6,7 +6,7 @@ package com.listory.songkang.constant;
 
 public class DomainConst {
     public static final boolean USE_LOGGER = true;
-    public static final String APP_ID = "wx605ca2108dd6e7d3";
+    public static final String APP_ID = "wxa156e9a18c77cf55";
 
     public static final String DOMAIN = "https://admin.liyangstory.com";
     public static final String PICTURE_DOMAIN = "http://img.liyangstory.com";

@@ -3,7 +3,6 @@ package com.listory.songkang.activity;
 import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,8 +10,6 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.LayoutRes;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -20,7 +17,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +36,6 @@ import com.joker.annotation.PermissionsRationale;
 import com.joker.annotation.PermissionsRequestSync;
 import com.joker.api.Permissions4M;
 import com.listory.songkang.activity.coupon.CouponActivity;
-import com.listory.songkang.alipay.PayResult;
 import com.listory.songkang.bean.AlbumDetailBean;
 import com.listory.songkang.bean.BannerItemBean;
 import com.listory.songkang.bean.HttpResponseBean;
@@ -107,10 +102,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             switch (action) {
                 case MediaService.PLAY_STATE_UPDATE:
                     MusicTrack musicTrack = intent.getParcelableExtra(MediaService.PLAY_STATE_UPDATE_DATA);
-                    if(musicTrack != null && !musicTrack.equals(mMusicTrack)) {
-                        mMusicTrack = musicTrack;
-                    }
-                    updatePlayInfo();
+                    updatePlayInfo(musicTrack, false);
                     break;
             }
         }
@@ -147,38 +139,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         IntentFilter intentFilter = new IntentFilter(MediaService.PLAY_STATE_UPDATE);
         registerReceiver(mIntentReceiver, intentFilter);
         mBannerItemList = new ArrayList<>();
-        mCoreContext.executeAsyncTask(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    JSONObject param = new JSONObject();
-                    param.put("id", "582");
-                    String response = mHttpService.post(DomainConst.MELODY_ITEM_URL, param.toString());
-                    JSONObject responseObject = new JSONObject(response);
-                    JSONObject temp = responseObject.getJSONObject("data");
-                    MelodyDetailBean bean = new MelodyDetailBean();
-                    bean.id = temp.getLong("id");
-                    bean.url = DomainConst.MEDIA_DOMAIN + temp.getString("melodyFilePath");
-                    bean.coverImageUrl = DomainConst.PICTURE_DOMAIN + temp.getString("melodyCoverImage");
-                    bean.albumName = temp.getString("melodyAlbum");
-                    bean.title = temp.getString("melodyName");
-                    bean.artist = temp.getString("melodyArtist");
-                    bean.favorite = temp.getString("favorated");
-                    bean.tags = temp.getString("melodyCategory");
-                    bean.isPrecious = temp.getString("melodyPrecious");
-                    bean.mItemTitle = bean.title;
-                    bean.mItemIconUrl = bean.coverImageUrl;
-                    bean.mTags = bean.tags;
-                    bean.mPrecious = bean.isPrecious;
-                    mMusicTrack = bean.convertToMusicTrack();
-                    runOnUiThread(() -> updatePlayInfo());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                  e.printStackTrace();
-                }
-            }
-        });
     }
     @LayoutRes
     protected int getLayoutResourceId() { return R.layout.activity_main;}
@@ -219,6 +179,38 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     }
     protected void initDataAfterUiAffairs(){
         requestBannerViewData();
+        mCoreContext.executeAsyncTask(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject param = new JSONObject();
+                    param.put("id", "582");
+                    String response = mHttpService.post(DomainConst.MELODY_ITEM_URL, param.toString());
+                    JSONObject responseObject = new JSONObject(response);
+                    JSONObject temp = responseObject.getJSONObject("data");
+                    MelodyDetailBean bean = new MelodyDetailBean();
+                    bean.id = temp.getLong("id");
+                    bean.url = DomainConst.MEDIA_DOMAIN + temp.getString("melodyFilePath");
+                    bean.coverImageUrl = DomainConst.PICTURE_DOMAIN + temp.getString("melodyCoverImage");
+                    bean.albumName = temp.getString("melodyAlbum");
+                    bean.title = temp.getString("melodyName");
+                    bean.artist = temp.getString("melodyArtist");
+                    bean.favorite = temp.getString("favorated");
+                    bean.tags = temp.getString("melodyCategory");
+                    bean.isPrecious = temp.getString("melodyPrecious");
+                    bean.mItemTitle = bean.title;
+                    bean.mItemIconUrl = bean.coverImageUrl;
+                    bean.mTags = bean.tags;
+                    bean.mPrecious = bean.isPrecious;
+                    mMusicTrack = bean.convertToMusicTrack();
+                    runOnUiThread(() -> updatePlayInfo(mMusicTrack, true));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         mViewPager.setPageMargin(20);
         mViewPager.setOffscreenPageLimit(3);
 //        mViewPager.setAdapter(mHomePageAdapter = new HomePageAdapter());
@@ -268,7 +260,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                 sendBroadcast(broadcast);
 
                 Intent intent = new Intent(MainActivity.this, MusicPlayActivity.class);
-                intent.putExtra(MusicPlayActivity.BUNDLE_DATA_PLAY, false);
                 startActivity(intent);
             }
                 break;
@@ -374,15 +365,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private void togglePauseResume() {
         if(MusicPlayer.getInstance().isPlaying()) {
             MusicPlayer.getInstance().pause();
-            updatePlayInfo();
         } else {
             MusicPlayer.getInstance().play();
-            updatePlayInfo();
         }
     }
 
-    private void updatePlayInfo() {
-        if(mMusicTrack != null) {
+    private void updatePlayInfo(MusicTrack musicTrack, boolean force) {
+        if(force || (musicTrack != null && !musicTrack.equals(mMusicTrack))) {
+            mMusicTrack = musicTrack;
             final String imageUrl = mMusicTrack.mCoverImageUrl + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.MELODY_SQUARE_S);
             mCircleView.setImageUrl(imageUrl);
             mMelodyNameTV.setText(mMusicTrack.mTitle);
@@ -513,7 +503,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     JSONObject responseObject = new JSONObject(response);
                     JSONArray dataArray = responseObject.getJSONArray("data");
                     responseBean.setState(responseObject.getBoolean("state"));
-
                     List<BannerItemBean> tempList = new ArrayList<>();
                     for(int i=0; i < dataArray.length(); i++) {
                         JSONObject temp = dataArray.getJSONObject(i);
@@ -528,9 +517,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     if(mBannerItemList.size() == 0 && tempList.size() > 0) {
                         mBannerItemList.addAll(tempList);
                     }
-
                     runOnUiThread(() -> mViewPager.setAdapter(new HomePageAdapter()));
-
                     for(BannerItemBean bean:tempList) {
                         String requestUrl = "";
                         switch (bean.getContentType()) {
@@ -587,10 +574,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     public void syncAccountInfoFromServer() {
         mCoreContext.executeAsyncTask(() -> {
             try {
-                int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
-                if(accountId != -1) {
+                if(isLogin()) {
                     JSONObject param = new JSONObject();
-                    param.put("id", accountId);
+                    param.put("id", mAccountId);
                     String response = mHttpService.post(DomainConst.ACCOUNT_INFO_URL, param.toString());
                     JSONObject responseObject = new JSONObject(response);
                     JSONObject accountInfo = responseObject.getJSONObject("data");

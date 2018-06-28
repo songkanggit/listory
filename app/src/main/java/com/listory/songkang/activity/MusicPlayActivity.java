@@ -28,6 +28,7 @@ import com.listory.songkang.dialog.MelodyListDialog;
 import com.listory.songkang.helper.HttpHelper;
 import com.listory.songkang.helper.WeiXinHelper;
 import com.listory.songkang.R;
+import com.listory.songkang.image.ImageLoader;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicPlayer;
 import com.listory.songkang.service.MusicTrack;
@@ -63,8 +64,8 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
     private MelodyListDialog mMelodyListDialog;
     private CachedImageView mBackgroundImageView;
     private Bitmap mBackgroundBitmap;
-    private boolean mIsAutoPlay;
     private int mAccountId;
+    private String mWxThumbUrl;
 
     @MediaService.RepeatMode
     private int mRepeatMode = MediaService.RepeatMode.REPEAT_ALL;
@@ -101,12 +102,12 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
     };
 
     protected void parseNonNullBundle(Bundle bundle){
-        MelodyDetailBean melody = bundle.getParcelable(BUNDLE_DATA);
-        if(melody != null) {
-            mMusicTrack = melody.convertToMusicTrack();
+        MelodyDetailBean bean = bundle.getParcelable(BUNDLE_DATA);
+        if(bean != null) {
+            mMusicTrack = bean.convertToMusicTrack();
         }
-        mIsAutoPlay = bundle.getBoolean(BUNDLE_DATA_PLAY);
     }
+
     protected void initDataIgnoreUi() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(MediaService.BUFFER_UPDATE);
@@ -153,15 +154,11 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
         MusicTrack musicTrack = MusicPlayer.getInstance().getCurrentMusicTrack();
         if(musicTrack != null) {
             mMusicTrack = musicTrack;
-        } else {
-            mIsAutoPlay = true;
+            mRepeatMode = MusicPlayer.getInstance().getRepeatMode();
+            toggleRepeatMode(false);
+            updateMusicInfo(mMusicTrack ,true);
+            cachedWxThumbIcon();
         }
-        if(mIsAutoPlay) {
-            MusicPlayer.getInstance().play();
-        }
-        mRepeatMode = MusicPlayer.getInstance().getRepeatMode();
-        toggleRepeatMode(false);
-        updateMusicInfo(mMusicTrack ,true);
     }
 
     @Override
@@ -249,7 +246,7 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
                 if(mMusicTrack != null) {
                     final String sharedUrl = "https://admin.liyangstory.com/share/player.html?melodyAlbum="
                             + mMusicTrack.mAlbum + "&melodyId=" + mMusicTrack.mId;
-                    WeiXinHelper.getInstance().shareToWeChat(getApplicationContext(), sharedUrl, mMusicTrack.mTitle);
+                    WeiXinHelper.getInstance().shareToWeChat(getApplicationContext(), sharedUrl, mMusicTrack.mTitle, mWxThumbUrl);
                 }
                 break;
             case R.id.iv_random_repeat:
@@ -388,7 +385,8 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
         }
         if((musicTrack != null && !musicTrack.equals(mMusicTrack)) || force) {
             mMusicTrack = musicTrack;
-            final String imageUrl = mMusicTrack.mCoverImageUrl + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.ALBUM_SQUARE);
+            cachedWxThumbIcon();
+            final String imageUrl = mMusicTrack.mCoverImageUrl + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.MELODY_SQUARE_L);
             mAlbumCoverIV.setImageUrl(imageUrl, url -> {
                 Bitmap bitmap = ((BitmapDrawable)mAlbumCoverIV.getDrawable()).getBitmap();
                 mAlbumCoverIV.setImageBitmap(BitmapUtil.getRoundRectBitmap(bitmap, DensityUtil.dip2px(mContext, 4)));
@@ -442,6 +440,12 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
             MusicPlayer.getInstance().play();
         }
         updateMusicInfo(mMusicTrack, false);
+    }
+
+    private void cachedWxThumbIcon() {
+        mShareIV.setEnabled(false);
+        mWxThumbUrl = mMusicTrack.mCoverImageUrl + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.THUMBNAIL);
+        ImageLoader.getInstance().loadImageView(null, mWxThumbUrl, url -> mShareIV.setEnabled(true));
     }
 
     private String getTimeLine(final int duration) {

@@ -63,8 +63,8 @@ public class NetCacheUtils {
         @Override
         protected Bitmap doInBackground(Object[] params) {
             mUrl = (String) params[1];
-            mImageView =  (WeakReference<ImageView>) params[0];
-            mCallback = new WeakReference<>((ImageLoader.ImageDownLoadCallback)params[2]);
+            mImageView = (WeakReference<ImageView>) params[0];
+            mCallback = new WeakReference<>((ImageLoader.ImageDownLoadCallback) params[2]);
             return downLoadBitmap(mUrl);
         }
 
@@ -83,7 +83,8 @@ public class NetCacheUtils {
          */
         @Override
         protected void onPostExecute(Bitmap result) {
-            if (result != null && mImageView.get() != null) {
+            if (result != null) {
+                if(mImageView.get() != null)
                 mImageView.get().setImageBitmap(result);
                 //从网络获取图片后,保存至本地缓存
                 mLocalCacheUtils.setBitmapToLocal(mUrl, result);

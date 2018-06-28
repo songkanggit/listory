@@ -48,7 +48,9 @@ public class AlbumListFragment extends BaseFragment implements View.OnClickListe
     protected void afterCreate(Bundle savedInstanceState) {
         mRecyclerView =  mRootView.findViewById(R.id.recycler_view);
         mPlayAllLL = mRootView.findViewById(R.id.ll_play_all);
-
+        if(mAlbumDetailBean == null) {
+            getActivity().finish();
+        }
         mRecyclerView.setLayoutManager(mLinearLayoutManager = new LinearLayoutManager(getContext()));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearLayoutItemDecoration(0, 0, getResources().getColor(R.color.colorF4F5F7)));

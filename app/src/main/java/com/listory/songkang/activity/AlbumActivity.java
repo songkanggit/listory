@@ -31,6 +31,8 @@ import com.listory.songkang.fragment.AlbumListFragment;
 import com.listory.songkang.fragment.TextViewFragment;
 import com.listory.songkang.helper.HttpHelper;
 import com.listory.songkang.R;
+import com.listory.songkang.helper.WeiXinHelper;
+import com.listory.songkang.image.ImageLoader;
 import com.listory.songkang.service.MediaService;
 import com.listory.songkang.service.MusicTrack;
 import com.listory.songkang.utils.QiniuImageUtil;
@@ -50,7 +52,7 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
     public static final String BUNDLE_DATA = "data";
     private NavigationTabStrip mNavigationTab;
     private ViewPager mViewPager;
-    private ImageView mBackView;
+    private ImageView mBackView, mShareView;
     private CachedImageView mAlbumCover;
     private AlbumListFragment mAlbumListFragment;
     private TextViewFragment mTextViewFragment;
@@ -60,6 +62,8 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
     private CollapsingToolbarLayout mCollapseToolbar;
     private AlbumDetailBean mAlbumDetailBean;
     private FrameLayout mToBeVipFL;
+    private int mAccountId;
+    private String mWxThumbUrl;
     
     //==========================================Privilege request start====================================
     @Override
@@ -100,6 +104,7 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
         mNavigationTab = fvb(R.id.navigation_tab_strip);
         mAlbumCover = fvb(R.id.iv_album);
         mBackView = fvb(R.id.toolbar_back);
+        mShareView = fvb(R.id.toolbar_share);
         mViewPager = fvb(R.id.view_pager);
         mTitleText = fvb(R.id.tv_album_name);
         mCollapseToolbar = fvb(R.id.collapse_toolbar);
@@ -110,6 +115,7 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
     protected void assembleViewClickAffairs(){
         mBackView.setOnClickListener(this);
         mToBeVipFL.setOnClickListener(this);
+        mShareView.setOnClickListener(this);
     }
     protected void initDataAfterUiAffairs(){
         mViewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager(), mViewPagerData));
@@ -131,6 +137,7 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
         } else {
             mToBeVipFL.setVisibility(View.GONE);
         }
+        cachedWxThumbIcon();
     }
 
     @Override
@@ -138,6 +145,11 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
         switch (view.getId()) {
             case R.id.toolbar_back:
                 finish();
+                break;
+            case R.id.toolbar_share:
+                final String shareUrl = "https://admin.liyangstory.com/share/albuminfo.html?melodyAlbum=" + mAlbumDetailBean.albumName;
+                WeiXinHelper.getInstance().shareToWeChat(getApplicationContext(),
+                        shareUrl, mAlbumDetailBean.albumName, mWxThumbUrl);
                 break;
             case R.id.fl_be_vip:
                 if(playStateIntercept()) {
@@ -163,7 +175,6 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
 
                 Intent intent = new Intent(AlbumActivity.this, MusicPlayActivity.class);
                 intent.putExtra(MusicPlayActivity.BUNDLE_DATA, beanList.get(position));
-                intent.putExtra(MusicPlayActivity.BUNDLE_DATA_PLAY, true);
                 startActivity(intent);
             }
         }
@@ -173,6 +184,10 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
     public void onLikeClick(int position, RecyclerViewMelodyListAdapter.Callback callback) {
         List<MelodyDetailBean> beanList = mAlbumListFragment.getDataList();
         if(playStateIntercept() && position >= 0 && position < beanList.size()) {
+            if(mAccountId == -1) {
+                startLoginActivity();
+                return;
+            }
             WeakReference<RecyclerViewMelodyListAdapter.Callback> weakReference = new WeakReference<>(callback);
             JSONObject param = new JSONObject();
             try {
@@ -199,19 +214,29 @@ public class AlbumActivity extends BaseActivity implements View.OnClickListener,
 
     }
 
+    private void cachedWxThumbIcon() {
+        mShareView.setEnabled(false);
+        mWxThumbUrl = mAlbumDetailBean.albumCoverImage + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.THUMBNAIL);
+        ImageLoader.getInstance().loadImageView(null, mWxThumbUrl, url -> mShareView.setEnabled(true));
+    }
+
     private void startChargeVipActivity() {
         Intent intent = new Intent(AlbumActivity.this, ChargeVipActivity.class);
         startActivity(intent);
     }
 
+    private void startLoginActivity() {
+        Intent intent = new Intent(AlbumActivity.this, LoginActivity.class);
+        startActivity(intent);
+    }
+
     private boolean playStateIntercept() {
-        int accountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
+        mAccountId = mPreferencesManager.get(PreferenceConst.ACCOUNT_ID, -1);
         if(!mAlbumDetailBean.isPrecious.equals("true")) {
             return true;
         }
-        if(accountId == -1) {
-            Intent intent = new Intent(AlbumActivity.this, LoginActivity.class);
-            startActivity(intent);
+        if(mAccountId == -1) {
+            startLoginActivity();
             return false;
         } else {
             boolean isVip = mPreferencesManager.get(PreferenceConst.ACCOUNT_VIP, false);

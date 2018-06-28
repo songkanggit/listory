@@ -12,7 +12,7 @@ public class QiniuImageUtil {
 
     @MagicConstant(intValues = {ImageType.ALBUM_SQUARE, ImageType.ALBUM_RECT,
             ImageType.MELODY_SQUARE_S, ImageType.MELODY_SQUARE_M, ImageType.MELODY_SQUARE_L,
-            ImageType.MELODY_RECT, ImageType.COMMON_SQUARE, ImageType.COMMON_RECT})
+            ImageType.MELODY_RECT, ImageType.COMMON_SQUARE, ImageType.COMMON_RECT, ImageType.THUMBNAIL})
     public @interface ImageType {
         int ALBUM_SQUARE = 0;
         int ALBUM_RECT = 1;
@@ -24,6 +24,7 @@ public class QiniuImageUtil {
         int COMMON_RECT = 7;
         int BANNER = 8;
         int DISCOVERY = 9;
+        int THUMBNAIL = 10;
     }
 
     public static final String generateFixSizeImageAppender(Context context, @ImageType int imageType) {
@@ -62,6 +63,9 @@ public class QiniuImageUtil {
                 break;
             case ImageType.DISCOVERY:
                 appender = getFixSizeRectImageAppender(context, 80, 110);
+                break;
+            case ImageType.THUMBNAIL:
+                appender = "?imageMogr2/auto-orient/thumbnail/80x80/blur/1x0/quality/75|imageslim";
                 break;
         }
         return appender;

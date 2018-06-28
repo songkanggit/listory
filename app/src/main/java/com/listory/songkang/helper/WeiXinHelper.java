@@ -2,11 +2,11 @@ package com.listory.songkang.helper;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.widget.Toast;
 
 import com.listory.songkang.constant.DomainConst;
 import com.listory.songkang.R;
+import com.listory.songkang.image.ImageLoader;
 import com.listory.songkang.utils.WxUtil;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
 import com.tencent.mm.opensdk.modelmsg.SendMessageToWX;
@@ -40,20 +40,20 @@ public class WeiXinHelper {
      * @param sharedTitle
      */
     public void shareToWeChat(Context context, @NonNls final String shareUrl,
-                              final String sharedTitle){
+                              final String sharedTitle, final String iconUrl){
         IWXAPI wxApi = WXAPIFactory.createWXAPI(context, DomainConst.APP_ID);
         if(wxApi.isWXAppInstalled()) {
             WXWebpageObject webPage = new WXWebpageObject();
             webPage.webpageUrl = shareUrl;
             WXMediaMessage msg = new WXMediaMessage(webPage);
             msg.title = sharedTitle;
-            msg.description = "果果故事树";
-            Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), R.mipmap.default_logout_logo);
+            msg.description = "李扬故事汇";
+            Bitmap bmp = ImageLoader.getInstance().getCachedBitmap(context.getResources(), iconUrl);
             Bitmap thumbBmp = Bitmap.createScaledBitmap(bmp, THUMB_SIZE, THUMB_SIZE, true);
-            bmp.recycle();
+//            bmp.recycle();
             msg.thumbData = WxUtil.bmpToByteArray(thumbBmp, true);
             SendMessageToWX.Req req = new SendMessageToWX.Req();
-            req.transaction = buildTransaction("StoryTree");
+            req.transaction = buildTransaction("LiYang");
             req.message = msg;
             req.scene = SendMessageToWX.Req.WXSceneSession;
             wxApi.sendReq(req);
@@ -66,6 +66,8 @@ public class WeiXinHelper {
         IWXAPI wxApi = WXAPIFactory.createWXAPI(context, DomainConst.APP_ID);
         if(wxApi.isWXAppInstalled()) {
             wxApi.sendReq(payReq);
+        } else {
+            Toast.makeText(context, R.string.wx_not_installed, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -76,6 +78,8 @@ public class WeiXinHelper {
             req.scope = "snsapi_userinfo";
             req.state = "diandi_wx_login";
             wxApi.sendReq(req);
+        } else {
+            Toast.makeText(context, R.string.wx_not_installed, Toast.LENGTH_LONG).show();
         }
     }
 
