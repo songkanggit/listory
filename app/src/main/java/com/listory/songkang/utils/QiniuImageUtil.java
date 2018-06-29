@@ -65,7 +65,7 @@ public class QiniuImageUtil {
                 appender = getFixSizeRectImageAppender(context, 80, 110);
                 break;
             case ImageType.THUMBNAIL:
-                appender = "?imageMogr2/auto-orient/thumbnail/80x80/blur/1x0/quality/75|imageslim";
+                appender = "?imageMogr2/auto-orient/thumbnail/80x80/blur/1x0/quality/50|imageslim";
                 break;
         }
         return appender;

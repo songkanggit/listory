@@ -91,7 +91,7 @@ public class NetCacheUtils {
                 //保存至内存中
                 mMemoryCacheUtils.setBitmapToMemory(mUrl, result);
                 if(mCallback.get() != null) {
-                    mCallback.get().onImageLoadComplete(mUrl);
+                    mCallback.get().onImageLoadComplete(result);
                 }
             }
         }

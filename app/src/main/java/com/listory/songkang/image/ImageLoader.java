@@ -107,7 +107,7 @@ public class ImageLoader {
             if(imageView != null)
             imageView.setImageBitmap(bitmap);
             if(callback != null) {
-                callback.onImageLoadComplete(url);
+                callback.onImageLoadComplete(bitmap);
             }
             return;
         }
@@ -121,7 +121,7 @@ public class ImageLoader {
             //从本地获取图片后,保存至内存中
             mMemoryCacheUtils.setBitmapToMemory(url,bitmap);
             if(callback != null) {
-                callback.onImageLoadComplete(url);
+                callback.onImageLoadComplete(bitmap);
             }
             return;
         }
@@ -131,6 +131,6 @@ public class ImageLoader {
     }
 
     public interface ImageDownLoadCallback {
-        void onImageLoadComplete(final String url);
+        void onImageLoadComplete(final Bitmap bitmap);
     }
 }

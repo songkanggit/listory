@@ -387,17 +387,13 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
             mMusicTrack = musicTrack;
             cachedWxThumbIcon();
             final String imageUrl = mMusicTrack.mCoverImageUrl + QiniuImageUtil.generateFixSizeImageAppender(mContext, QiniuImageUtil.ImageType.MELODY_SQUARE_L);
-            mAlbumCoverIV.setImageUrl(imageUrl, url -> {
-                Bitmap bitmap = ((BitmapDrawable)mAlbumCoverIV.getDrawable()).getBitmap();
-                mAlbumCoverIV.setImageBitmap(BitmapUtil.getRoundRectBitmap(bitmap, DensityUtil.dip2px(mContext, 4)));
-            });
-            mBackgroundImageView.setImageUrl(imageUrl, url -> runOnUiThread(() -> {
-                Bitmap bitmap = ((BitmapDrawable)mBackgroundImageView.getDrawable()).getBitmap();
+            mAlbumCoverIV.setImageUrl(imageUrl, bitmap -> {
                 if(bitmap != null) {
+                    mAlbumCoverIV.setImageBitmap(BitmapUtil.getRoundRectBitmap(bitmap, DensityUtil.dip2px(mContext, 4)));
                     mBackgroundBitmap = GussBlurUtil.rsBlur(MusicPlayActivity.this, bitmap, 18, (float)0.6);
                     mBackgroundImageView.setImageBitmap(mBackgroundBitmap);
                 }
-            }));
+            });
             mMelodyNameTV.setText(mMusicTrack.mTitle);
             mFavoriteIV.setImageResource(R.mipmap.melody_unlike);
             mDownloadIV.setImageResource(R.mipmap.music_player_download);
