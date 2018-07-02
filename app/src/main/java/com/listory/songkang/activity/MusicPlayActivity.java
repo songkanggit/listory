@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.support.annotation.LayoutRes;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -84,12 +83,12 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
                     mSeekBar.setSecondaryProgress(realSecondProgress);
                     break;
                 case MediaService.PLAY_STATE_UPDATE:
-                    int duration = intent.getIntExtra(MediaService.PLAY_STATE_UPDATE_DURATION, 0);
-                    long position = intent.getLongExtra(MediaService.PLAY_STATE_UPDATE_POSITION, 0);
+                    int duration = (int)intent.getLongExtra(MediaService.PLAY_STATE_UPDATE_DURATION, 0);
+                    int position = (int)intent.getLongExtra(MediaService.PLAY_STATE_UPDATE_POSITION, 0);
                     if(duration > 0 && position < duration) {
                         mSeekBar.setMax(duration);
-                        mSeekBar.setProgress((int)position);
-                        mCurrentTime.setText(getTimeLine((int)position));
+                        mSeekBar.setProgress(position);
+                        mCurrentTime.setText(getTimeLine(position));
                         mLastTime.setText(getTimeLine(duration));
                     }
                     MusicTrack musicTrack = intent.getParcelableExtra(MediaService.PLAY_STATE_UPDATE_DATA);
@@ -276,7 +275,9 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
     @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
         if(b) {
-            MusicPlayer.getInstance().seek(i);
+            final int keyFrameMs = seekBar.getProgress()/1000;
+            final long newPosition = (long)(keyFrameMs * 1000);
+            mCurrentTime.setText(getTimeLine((int)newPosition));
         }
     }
 
@@ -287,7 +288,10 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-
+        final int keyFrameMs = seekBar.getProgress()/1000;
+        final long newPosition = (long)(keyFrameMs * 1000);
+        mCurrentTime.setText(getTimeLine((int)newPosition));
+        MusicPlayer.getInstance().seek(newPosition);
     }
 
     @Override
