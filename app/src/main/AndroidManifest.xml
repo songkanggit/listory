@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.listory.songkang">
+    package="com.zealens.listory">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -19,51 +19,51 @@
     <uses-feature android:name="android.hardware.camera.flash" />
 
     <application
-        android:name="com.listory.songkang.application.MyApplication"
+        android:name="com.zealens.listory.application.MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
         android:theme="@style/AppTheme">
-        <activity android:name="com.listory.songkang.activity.MainActivity"></activity>
+        <activity android:name="com.zealens.listory.activity.MainActivity"></activity>
         <activity
-            android:name="com.listory.songkang.activity.MusicPlayActivity"
+            android:name="com.zealens.listory.activity.MusicPlayActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:launchMode="singleInstance"
             android:theme="@style/FullscreenTheme" />
         <activity
-            android:name="com.listory.songkang.activity.AlbumActivity"
+            android:name="com.zealens.listory.activity.AlbumActivity"
             android:launchMode="singleTop" />
         <activity android:name="com.listory.songkang.activity.TestActivity"/>
-        <activity android:name="com.listory.songkang.activity.SplashActivity">
+        <activity android:name="com.zealens.listory.activity.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.listory.songkang.activity.MyFavoriteActivity"
+        <activity android:name="com.zealens.listory.activity.MyFavoriteActivity"
             android:launchMode="singleTop"/>
         <service
-            android:name="com.listory.songkang.service.MediaService"
+            android:name="com.zealens.listory.service.MediaService"
             android:process=":media" />
-        <activity android:name="com.listory.songkang.activity.LoginActivity"
+        <activity android:name="com.zealens.listory.activity.LoginActivity"
             android:launchMode="singleTop"/>
-        <activity android:name="com.listory.songkang.activity.ChargeVipActivity"
+        <activity android:name="com.zealens.listory.activity.ChargeVipActivity"
             android:launchMode="singleTop"/>
-        <activity android:name="com.listory.songkang.activity.coupon.CouponActivity"
+        <activity android:name="com.zealens.listory.activity.coupon.CouponActivity"
             android:launchMode="singleTop"/>
-        <activity android:name="com.listory.songkang.activity.coupon.CouponResultActivity"
+        <activity android:name="com.zealens.listory.activity.coupon.CouponResultActivity"
             android:launchMode="singleTop"/>
         <activity android:name="com.google.zxing.activity.CaptureActivity"
             android:launchMode="singleTop"/>
-        <activity android:name="com.listory.songkang.activity.MyDownLoadActivity"
+        <activity android:name="com.zealens.listory.activity.MyDownLoadActivity"
             android:launchMode="singleTop"/>
 
         <!-- Third Party Pay Start -->
         <activity
-            android:name=".wxapi.WXEntryActivity"
+            android:name="com.zealens.listory.wxapi.WXEntryActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/AppTheme">
@@ -73,7 +73,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".wxapi.WXPayEntryActivity"
+            android:name="com.zealens.listory.wxapi.WXPayEntryActivity"
             android:exported="true"
             android:launchMode="singleTop" />
         <activity

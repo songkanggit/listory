@@ -34,7 +34,7 @@
             android:layout_marginRight="@dimen/dp12"
             android:src="@mipmap/bottom_player_play" />
     </LinearLayout>
-    <com.listory.songkang.view.AvatarCircleView
+    <com.zealens.listory.view.AvatarCircleView
         android:id="@+id/circle_view"
         android:layout_width="55dp"
         android:layout_height="55dp"

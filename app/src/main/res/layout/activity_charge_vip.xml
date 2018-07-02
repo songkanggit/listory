@@ -6,7 +6,7 @@
     android:background="@color/colorWhite"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.listory.songkang.activity.ChargeVipActivity">
+    tools:context="com.listory.songkang.com.listory.zealens.activity.ChargeVipActivity">
     <android.support.v7.widget.Toolbar
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/toolbar"

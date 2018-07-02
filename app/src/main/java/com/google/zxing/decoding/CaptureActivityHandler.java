@@ -30,7 +30,7 @@ import com.google.zxing.Result;
 import com.google.zxing.activity.CaptureActivity;
 import com.google.zxing.camera.CameraManager;
 import com.google.zxing.view.ViewfinderResultPointCallback;
-import com.listory.songkang.R;
+import com.zealens.listory.R;
 
 import java.util.Vector;
 

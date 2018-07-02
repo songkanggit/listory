@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/colorF4F5F7"
-    tools:context="com.listory.songkang.activity.coupon.CouponActivity">
+    tools:context="com.listory.songkang.com.listory.zealens.activity.coupon.CouponActivity">
 
     <android.support.v7.widget.Toolbar
         xmlns:app="http://schemas.android.com/apk/res-auto"

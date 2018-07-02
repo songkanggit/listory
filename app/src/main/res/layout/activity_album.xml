@@ -25,7 +25,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/colorWhite">
-                    <com.listory.songkang.view.CachedImageView
+                    <com.zealens.listory.view.CachedImageView
                         android:id="@+id/iv_album"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/dp250"
@@ -82,7 +82,7 @@
                     </LinearLayout>
                 </RelativeLayout>
             </android.support.design.widget.CollapsingToolbarLayout>
-            <com.listory.songkang.container.NavigationTabStrip
+            <com.zealens.listory.container.NavigationTabStrip
                 android:id="@+id/navigation_tab_strip"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/dp55"

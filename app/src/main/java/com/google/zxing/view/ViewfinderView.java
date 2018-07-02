@@ -34,7 +34,7 @@ import android.view.View;
 
 import com.google.zxing.ResultPoint;
 import com.google.zxing.camera.CameraManager;
-import com.listory.songkang.R;
+import com.zealens.listory.R;
 
 import java.util.Collection;
 import java.util.HashSet;

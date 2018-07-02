@@ -43,9 +43,9 @@ import com.joker.annotation.PermissionsGranted;
 import com.joker.annotation.PermissionsRationale;
 import com.joker.annotation.PermissionsRequestSync;
 import com.joker.api.Permissions4M;
-import com.listory.songkang.activity.BaseActivity;
-import com.listory.songkang.constant.PermissionConstants;
-import com.listory.songkang.R;
+import com.zealens.listory.R;
+import com.zealens.listory.activity.BaseActivity;
+import com.zealens.listory.constant.PermissionConstants;
 
 import java.io.IOException;
 import java.util.Hashtable;

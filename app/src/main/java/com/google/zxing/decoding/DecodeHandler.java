@@ -31,7 +31,7 @@ import com.google.zxing.activity.CaptureActivity;
 import com.google.zxing.camera.CameraManager;
 import com.google.zxing.camera.PlanarYUVLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
-import com.listory.songkang.R;
+import com.zealens.listory.R;
 
 import java.util.Hashtable;
 
