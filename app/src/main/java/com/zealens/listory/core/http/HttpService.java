@@ -26,4 +26,6 @@ public interface HttpService {
     void enqueuePost(String url, String json, Callback callback);
 
     void enqueueRequest(Request request, Callback callback);
+
+    String uploadImageRequest(final String postUrl, final String imagePath);
 }

@@ -7,6 +7,7 @@ import com.zealens.listory.core.BaseCoreManager;
 
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -100,6 +102,30 @@ public class HttpManager extends BaseCoreManager implements HttpService {
                 if (callback != null) callback.onResponse(call, response);
             }
         });
+    }
+
+    @Override
+    public String uploadImageRequest(final String postUrl, final String imagePath) {
+        MultipartBody.Builder builder = new MultipartBody.Builder();
+        builder.addFormDataPart("image", imagePath,
+                RequestBody.create(MediaType.parse("image/jpeg"), new File(imagePath)));
+
+        RequestBody requestBody = builder.build();
+        Request.Builder reqBuilder = new Request.Builder();
+        Request request = reqBuilder
+                .url(postUrl)
+                .post(requestBody)
+                .build();
+        try{
+            Response response = mClient.newCall(request).execute();
+            if (response.isSuccessful()) {
+                String resultValue = response.body().string();
+                return resultValue;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     @Override

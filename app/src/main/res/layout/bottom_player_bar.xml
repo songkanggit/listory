@@ -32,6 +32,7 @@
             android:id="@+id/iv_play"
             style="@style/BottomControlButtonStyleBigger"
             android:layout_marginRight="@dimen/dp12"
+            android:padding="@dimen/dp8"
             android:src="@mipmap/bottom_player_play" />
     </LinearLayout>
     <com.zealens.listory.view.AvatarCircleView

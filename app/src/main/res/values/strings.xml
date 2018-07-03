@@ -16,6 +16,11 @@
 
     <string name="app_close">关闭</string>
 
+    <!-- Main Activity -->
+    <string name="personal_info_cannot_find_picture">找不到照片</string>
+    <string name="personal_info_update_success">修改成功</string>
+    <string name="personal_info_update_failed">修改失败</string>
+
     <!-- Album Activity -->
     <string name="album_title_0">简介</string>
     <string name="album_title_1">故事</string>
@@ -53,6 +58,8 @@
     <string name="sms_code_wrong">验证码错误</string>
     <string name="error_telephone_tip">请输入正确的手机号码</string>
     <string name="error_login">请重新登录</string>
+    <string name="auth_success">授权成功</string>
+    <string name="auth_failed">授权失败</string>
 
     <!-- Activity Favorite -->
     <string name="activity_favorite_title">我的收藏</string>

@@ -23,15 +23,24 @@
         android:layout_alignBottom="@id/head_image_view"
         android:visibility="gone"
         android:src="@mipmap/nav_vip_false"/>
+    <TextView
+        android:id="@+id/tv_name"
+        style="@style/NavigationTextView"
+        android:layout_below="@id/head_image_view"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true"
+        android:maxEms="20"
+        android:text="@string/nav_login_register"/>
     <EditText
         android:id="@+id/edit_name"
         style="@style/NavigationTextView"
         android:layout_below="@id/head_image_view"
         android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
-        android:enabled="false"
         android:maxEms="20"
-        android:text="@string/nav_login_register"
+        android:focusedByDefault="false"
+        android:cursorVisible="false"
+        android:text=""
         android:background="@color/colorTransparent"/>
     <TextView
         android:id="@+id/tv_hint"
@@ -41,8 +50,7 @@
         android:layout_centerHorizontal="true"
         android:textSize="@dimen/sp15"
         android:textColor="@color/color666666"
-        android:visibility="gone"
-        android:text="点击编辑" />
+        android:visibility="gone" />
     <LinearLayout
         android:id="@+id/ll_favorite"
         android:layout_below="@id/edit_name"

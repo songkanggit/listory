@@ -2,12 +2,16 @@ package com.zealens.listory.application;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.HandlerThread;
 import android.os.Process;
 import android.support.annotation.NonNull;
 import android.util.SparseArray;
 
+import com.tencent.stat.StatConfig;
+import com.tencent.stat.StatService;
+import com.zealens.listory.BuildConfig;
 import com.zealens.listory.core.CoreApplication;
 import com.zealens.listory.core.CoreContext;
 import com.zealens.listory.core.connection.NetworkManager;
@@ -16,6 +20,7 @@ import com.zealens.listory.core.http.HttpManager;
 import com.zealens.listory.core.logger.LoggerManager;
 import com.zealens.listory.core.preference.PreferencesManager;
 import com.squareup.leakcanary.LeakCanary;
+import com.zealens.listory.service.MediaService;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -72,12 +77,18 @@ public class MyApplication extends CoreApplication {
 //        }
 //        LeakCanary.install(this);
 //
-//        mApi = WXAPIFactory.createWXAPI(this, DomainConst.APP_ID);
-//        mApi.registerApp(DomainConst.APP_ID);
+        startService(new Intent(getApplicationContext(), MediaService.class));
         if(LeakCanary.isInAnalyzerProcess(this)) {
             return;
         }
         LeakCanary.install(this);
+
+        if(BuildConfig.DEBUG) {
+            // [可选]设置是否打开debug输出，上线时请关闭，Logcat标签为"MtaSDK"
+            StatConfig.setDebugEnable(true);
+        }
+        // 基础统计API
+        StatService.registerActivityLifecycleCallbacks(this);
     }
 
     @Override

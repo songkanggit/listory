@@ -13,6 +13,12 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         buildConfigField "boolean", "PUBLISH_FLAG", PUBLISH_FLAG
+        manifestPlaceholders = [
+                //AZ7PX7KAY88P 属于应用"李扬故事汇"独有的 Android AppKey, 用于配置SDK
+                MTA_APPKEY:"AZ7PX7KAY88P",
+                //标注应用推广渠道用以区分新用户来源，可填写如应用宝，豌豆荚等
+                MTA_CHANNEL:"后台"
+        ]
     }
     buildTypes {
         release {
@@ -53,6 +59,10 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:26.1.0'
     compile 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:+'
     compile 'com.google.zxing:core:3.2.1'
+    //MTA主包
+    compile 'com.qq.mta:mta:3.4.2'
+    //MID基础包
+    compile 'com.tencent.mid:mid:3.73-release'
 
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.4'
 

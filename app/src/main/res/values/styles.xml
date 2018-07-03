@@ -14,6 +14,7 @@
         <item name="android:textSize">18sp</item>
         <item name="android:textColor">#ffffff</item>
         <item name="android:gravity">center</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
     </style>
     <style name="NavigationImageView">
         <item name="android:layout_height">wrap_content</item>

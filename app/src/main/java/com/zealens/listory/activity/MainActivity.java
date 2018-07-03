@@ -9,7 +9,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.LayoutRes;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -49,6 +52,7 @@ import com.zealens.listory.service.MusicPlayer;
 import com.zealens.listory.service.MusicTrack;
 import com.zealens.listory.core.download.DownLoadManager;
 import com.zealens.listory.transformer.ScaleInTransformer;
+import com.zealens.listory.utils.DateTimeUtil;
 import com.zealens.listory.utils.DensityUtil;
 import com.zealens.listory.utils.QiniuImageUtil;
 import com.zealens.listory.utils.StringUtil;
@@ -60,6 +64,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,12 +73,17 @@ import java.util.List;
         value = {PermissionConstants.STORAGE_READ_CODE, PermissionConstants.STORAGE_WRITE_CODE})
 public class MainActivity extends BaseActivity implements View.OnClickListener, MusicPlayer.ConnectionState {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int TAKE_PHOTO_REQUEST_CODE = 0; // 拍照返回的 requestCode
+    private static final int CHOICE_FROM_ALBUM_REQUEST_CODE = 1; // 相册选取返回的 requestCode
+    private static final int CROP_PHOTO_REQUEST_CODE = 2;
+
     private DrawerLayout mDrawerLayout;
     private List<BannerItemBean> mBannerItemList;
     private ViewPager mViewPager;
     private AvatarCircleView mCircleView, mHeadImageCircleView;
     private ImageView mPlayControlImageView, mToolbarOpen, mToolbarQR;
-    private TextView mMelodyNameTV;
+    private TextView mMelodyNameTV, mLoginTV;
     private ObjectAnimator mRotateObjectAnimation;
     private MusicTrack mMusicTrack;
     private Bitmap mDefaultLoadBitMap;
@@ -83,7 +93,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private ImageView mVipFlagIV;
     private TextView mHintTV;
     private EditText mNameEditText;
+    private Uri mPhotoOutputUri = null;
     private int mAccountId;
+    private String mNickName;
 
     @MagicConstant(intValues = {BannerType.MELODY_TYPE, BannerType.ALBUM_TYPE, BannerType.BROWSER_TYPE})
     public @interface BannerType {
@@ -159,6 +171,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mVipFlagIV = fvb(R.id.iv_vip_flag);
         mHintTV = fvb(R.id.tv_hint);
         mNameEditText = fvb(R.id.edit_name);
+        mLoginTV = fvb(R.id.tv_name);
     }
     protected void assembleViewClickAffairs(){
         mCircleView.setOnClickListener(this);
@@ -171,8 +184,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         mVipLL.setOnClickListener(this);
         mCouponLL.setOnClickListener(this);
         mExitLL.setOnClickListener(this);
-        mHintTV.setOnClickListener(this);
         mHeadImageCircleView.setOnClickListener(this);
+        mNameEditText.setOnClickListener(this);
+        mLoginTV.setOnClickListener(this);
     }
     protected void initDataAfterUiAffairs(){
         requestBannerViewData();
@@ -249,18 +263,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             }
                 break;
             case R.id.circle_view: {
-                ArrayList<MusicTrack> dataList = new ArrayList<>();
-                dataList.add(mMusicTrack);
-                Intent broadcast = new Intent(MediaService.PLAY_ACTION);
-                broadcast.putParcelableArrayListExtra(MediaService.PLAY_ACTION_PARAM_LIST, dataList);
-                broadcast.putExtra(MediaService.PLAY_ACTION_PARAM_POSITION, -1);
-                sendBroadcast(broadcast);
-
+                if(!MusicPlayer.getInstance().isInitialized()) {
+                    prepareDefaultVideo();
+                }
                 Intent intent = new Intent(MainActivity.this, MusicPlayActivity.class);
                 startActivity(intent);
             }
                 break;
             case R.id.iv_play:
+                if(!MusicPlayer.getInstance().isInitialized()) {
+                    prepareDefaultVideo();
+                }
                 togglePauseResume();
                 break;
             case R.id.ll_favorite:
@@ -308,28 +321,68 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     updateUserInfo();
                 }
                 break;
-            case R.id.head_image_view:
+            case R.id.tv_name:
             {
                 if(!isLogin()) {
                     Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                     startActivity(intent);
                 }
+                break;
+            }
+            case R.id.head_image_view:
+            {
+                if(isLogin()) {
+                    chooseFromAlbum();
+                } else {
+                    startLoginActivity();
+                }
             }
                 break;
-            case R.id.tv_hint:
-                mNameEditText.setEnabled(true);
+            case R.id.edit_name: {
+                mNickName = mNameEditText.getText().toString();
                 mNameEditText.requestFocus();
+                mNameEditText.setCursorVisible(true);
                 mNameEditText.setSelection(mNameEditText.getText().length());
                 ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
                         .showSoftInput(mNameEditText, InputMethodManager.SHOW_IMPLICIT);
+            }
                 break;
             case R.id.rl_content:
-                if(mNameEditText.isEnabled()) {
-                    mNameEditText.clearFocus();
-                    mNameEditText.setEnabled(false);
-                    ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
-                            .hideSoftInputFromWindow(mNameEditText.getWindowToken(),
-                                    InputMethodManager.HIDE_NOT_ALWAYS);
+            {
+                String editName = mNameEditText.getText().toString();
+                mNameEditText.clearFocus();
+                mNameEditText.setCursorVisible(false);
+                ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
+                        .hideSoftInputFromWindow(mNameEditText.getWindowToken(),
+                                InputMethodManager.HIDE_NOT_ALWAYS);
+                if(!StringUtil.isEmpty(mNickName) && !mNickName.equals(editName)) {
+                    mNickName = editName;
+                    syncAccountInfoServe(null, mNickName, null);
+                }
+            }
+                break;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case TAKE_PHOTO_REQUEST_CODE:
+//                cropPhoto(mPhotoUri);
+                break;
+            case CHOICE_FROM_ALBUM_REQUEST_CODE:
+                if(data != null)
+                    cropPhoto(data.getData());
+                break;
+            case CROP_PHOTO_REQUEST_CODE:
+                File file = new File(Environment.getExternalStorageDirectory() + "/image_output.jpg");
+                if(file.canRead()) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+                    mHeadImageCircleView.setImageBitmap(bitmap);
+                    syncAccountInfoServe(file.getAbsolutePath(), null, null);
+                } else {
+                    Toast.makeText(getApplicationContext(), R.string.personal_info_cannot_find_picture, Toast.LENGTH_LONG).show();
                 }
                 break;
         }
@@ -359,11 +412,21 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     }
 
+    private void chooseFromAlbum() {
+        // 打开系统图库的 Action，等同于: "android.intent.action.GET_CONTENT"
+        Intent choiceFromAlbumIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        // 设置数据类型为图片类型
+        choiceFromAlbumIntent.setType("image/*");
+        startActivityForResult(choiceFromAlbumIntent, CHOICE_FROM_ALBUM_REQUEST_CODE);
+    }
+
     private void togglePauseResume() {
-        if(MusicPlayer.getInstance().isPlaying()) {
-            MusicPlayer.getInstance().pause();
-        } else {
-            MusicPlayer.getInstance().play();
+        if(MusicPlayer.getInstance().isInitialized()) {
+            if (MusicPlayer.getInstance().isPlaying()) {
+                MusicPlayer.getInstance().pause();
+            } else {
+                MusicPlayer.getInstance().play();
+            }
         }
     }
 
@@ -393,6 +456,22 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             }
             mPlayControlImageView.setImageResource(R.mipmap.bottom_player_play);
         }
+    }
+
+    /**
+     * 裁剪图片
+     */
+    private void cropPhoto(Uri inputUri) {
+        // 调用系统裁剪图片的 Action
+        Intent cropPhotoIntent = new Intent("com.android.camera.action.CROP");
+        // 设置数据Uri 和类型
+        cropPhotoIntent.setDataAndType(inputUri, "image/*");
+        // 授权应用读取 Uri，这一步要有，不然裁剪程序会崩溃
+        cropPhotoIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        // 设置图片的最终输出目录
+        cropPhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                mPhotoOutputUri = Uri.parse("file:////sdcard/image_output.jpg"));
+        startActivityForResult(cropPhotoIntent, CROP_PHOTO_REQUEST_CODE);
     }
 
     private class HomePageAdapter extends PagerAdapter {
@@ -490,6 +569,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         }
     }
 
+    private void prepareDefaultVideo() {
+        ArrayList<MusicTrack> dataList = new ArrayList<>();
+        dataList.add(mMusicTrack);
+        Intent broadcast = new Intent(MediaService.PLAY_ACTION);
+        broadcast.putParcelableArrayListExtra(MediaService.PLAY_ACTION_PARAM_LIST, dataList);
+        broadcast.putExtra(MediaService.PLAY_ACTION_PARAM_POSITION, -1);
+        sendBroadcast(broadcast);
+    }
+
     private void requestBannerViewData() {
         mCoreContext.executeAsyncTask(() -> {
             int tryTimes = 3;
@@ -557,6 +645,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             mHintTV.setVisibility(View.VISIBLE);
             mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_login_logo));
             mExitLL.setVisibility(View.VISIBLE);
+            mLoginTV.setVisibility(View.INVISIBLE);
+            mNameEditText.setVisibility(View.VISIBLE);
             syncAccountInfoFromServer();
         } else {
             mDownloadManager.changeUser(DownLoadManager.DEFAULT_USER);
@@ -564,7 +654,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             mHintTV.setVisibility(View.GONE);
             mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_logout_logo));
             mExitLL.setVisibility(View.GONE);
-            mNameEditText.setText(R.string.nav_login_register);
+            mLoginTV.setVisibility(View.VISIBLE);
+            mNameEditText.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -582,13 +673,21 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                     runOnUiThread(() -> {
                         boolean isVip = mPreferencesManager.get(PreferenceConst.ACCOUNT_VIP, false);
                         if(isVip) {
+                            String endTime = mPreferencesManager.get(PreferenceConst.ACCOUNT_VIP_END_TIME, "");
+                            endTime = DateTimeUtil.timeStampToDateString(endTime, DateTimeUtil.sdf);
                             mVipFlagIV.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.nav_vip_true));
+                            mHintTV.setText("(VIP会员"+endTime+"到期)");
                         } else {
                             mVipFlagIV.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.nav_vip_false));
+                            mHintTV.setText("");
                         }
                         final String nickName = mPreferencesManager.get(PreferenceConst.ACCOUNT_NICK_NAME, "");
                         if(!StringUtil.isEmpty(nickName) && nickName.length() < 20) {
                             mNameEditText.setText(nickName);
+                        }
+                        final String iconUrl = mPreferencesManager.get(PreferenceConst.ACCOUNT_ICON, "");
+                        if(!StringUtil.isEmpty(iconUrl)) {
+                            mHeadImageCircleView.setImageUrl(iconUrl);
                         }
                     });
                 }
@@ -642,5 +741,59 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private void startLoginActivity () {
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
+    }
+
+    private void syncAccountInfoServe(String imageFile, String nickName, String telephone) {
+        mCoreContext.executeAsyncTask(() -> {
+            try {
+                boolean isSuccess = false;
+                JSONObject param = new JSONObject();
+                if(!StringUtil.isEmpty(imageFile)) {
+                    String response = mHttpService.uploadImageRequest(DomainConst.UPLOAD_FILE_URL, imageFile);
+                    JSONObject resObject = new JSONObject(response);
+                    if(resObject.getBoolean("state")) {
+                        param.put("icon", resObject.getString("data"));
+                        isSuccess = true;
+                    }
+                }
+                if(!StringUtil.isEmpty(nickName)) {
+                    param.put("nickName", nickName);
+                    isSuccess = true;
+                }
+                if(!StringUtil.isEmpty(telephone)) {
+                    param.put("telephone", telephone);
+                    isSuccess = true;
+                }
+                if(isLogin()) {
+                    param.put("id", mAccountId);
+                    String updateResponse = mHttpService.post(DomainConst.ACCOUNT_UPDATE_URL, param.toString());
+                    JSONObject updateObject = new JSONObject(updateResponse);
+                    final boolean state = isSuccess & updateObject.getBoolean("state");
+                    runOnUiThread(() -> {
+                        int toastRes = R.string.personal_info_update_failed;
+                        if(state) {
+                            toastRes = R.string.personal_info_update_success;
+                        }
+                        try {
+                            if(!StringUtil.isEmpty(imageFile)) {
+                                mPreferencesManager.put(PreferenceConst.ACCOUNT_ICON, DomainConst.PICTURE_DOMAIN + param.getString("icon"));
+                                mHeadImageCircleView.setImageUrl(mPreferencesManager.get(PreferenceConst.ACCOUNT_ICON, ""));
+                            }
+                            if(!StringUtil.isEmpty(nickName)) {
+                                mPreferencesManager.put(PreferenceConst.ACCOUNT_NICK_NAME, nickName);
+                                mNameEditText.setText(nickName);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        Toast.makeText(MainActivity.this, toastRes, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 }
