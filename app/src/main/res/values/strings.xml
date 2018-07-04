@@ -20,6 +20,7 @@
     <string name="personal_info_cannot_find_picture">找不到照片</string>
     <string name="personal_info_update_success">修改成功</string>
     <string name="personal_info_update_failed">修改失败</string>
+    <string name="press_back_more">再按一次退出程序</string>
 
     <!-- Album Activity -->
     <string name="album_title_0">简介</string>

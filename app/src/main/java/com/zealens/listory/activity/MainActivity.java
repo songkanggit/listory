@@ -94,7 +94,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
     private TextView mHintTV;
     private EditText mNameEditText;
     private Uri mPhotoOutputUri = null;
-    private int mAccountId;
+    private int mAccountId, mBackPressCount;
     private String mNickName;
 
     @MagicConstant(intValues = {BannerType.MELODY_TYPE, BannerType.ALBUM_TYPE, BannerType.BROWSER_TYPE})
@@ -144,6 +144,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     }
     protected void initDataIgnoreUi() {
+        mBackPressCount = 0;
         mDefaultLoadBitMap = BitmapFactory.decodeResource(getResources(), R.mipmap.default_banner_bg);
         IntentFilter intentFilter = new IntentFilter(MediaService.PLAY_STATE_UPDATE);
         registerReceiver(mIntentReceiver, intentFilter);
@@ -249,6 +250,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
 
     @Override
     public void onClick(View view) {
+        mBackPressCount = 0;
         final boolean isLogin = isLogin();
         switch (view.getId()) {
             case R.id.toolbar_nav:
@@ -399,6 +401,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
         if(mDefaultLoadBitMap != null) {
             mDefaultLoadBitMap.recycle();
             mDefaultLoadBitMap = null;
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(mBackPressCount == 0) {
+            Toast.makeText(getApplicationContext(), R.string.press_back_more, Toast.LENGTH_LONG).show();
+            mBackPressCount ++;
+        } else {
+            finish();
         }
     }
 
@@ -643,7 +655,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
             mDownloadManager.changeUser(String.valueOf(mAccountId));
             mVipFlagIV.setVisibility(View.VISIBLE);
             mHintTV.setVisibility(View.VISIBLE);
-            mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_login_logo));
             mExitLL.setVisibility(View.VISIBLE);
             mLoginTV.setVisibility(View.INVISIBLE);
             mNameEditText.setVisibility(View.VISIBLE);
@@ -688,6 +699,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener, 
                         final String iconUrl = mPreferencesManager.get(PreferenceConst.ACCOUNT_ICON, "");
                         if(!StringUtil.isEmpty(iconUrl)) {
                             mHeadImageCircleView.setImageUrl(iconUrl);
+                        } else {
+                            mHeadImageCircleView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.default_login_logo));
                         }
                     });
                 }

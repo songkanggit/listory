@@ -11,4 +11,11 @@
         android:textSize="@dimen/sp15"
         android:textColor="@color/colorBlack"
         android:background="@drawable/button_press_effect"/>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp1"
+        android:layout_below="@id/tv_name"
+        android:layout_marginLeft="@dimen/dp20"
+        android:layout_marginRight="@dimen/dp20"
+        android:background="@color/colorF4F5F7"/>
 </RelativeLayout>
