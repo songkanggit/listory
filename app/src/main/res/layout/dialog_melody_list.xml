@@ -10,11 +10,6 @@
         android:paddingBottom="@dimen/dp50">
     </android.support.v7.widget.RecyclerView>
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/dp1"
-        android:background="@color/colorF4F5F7"
-        android:layout_above="@id/tv_close"/>
-    <TextView
         android:id="@+id/tv_close"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp49"
@@ -24,4 +19,9 @@
         android:textSize="@dimen/sp15"
         android:textColor="@color/color666666"
         android:background="@drawable/button_press_effect"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp1"
+        android:background="@color/colorF4F5F7"
+        android:layout_above="@id/tv_close"/>
 </RelativeLayout>

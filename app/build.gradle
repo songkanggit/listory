@@ -1,6 +1,7 @@
 import java.text.SimpleDateFormat
 
 apply plugin: 'com.android.application'
+apply plugin: 'walle'
 
 android {
     compileSdkVersion 26
@@ -11,7 +12,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
+        multiDexEnabled true
         buildConfigField "boolean", "PUBLISH_FLAG", PUBLISH_FLAG
         manifestPlaceholders = [
                 //AZ7PX7KAY88P 属于应用"李扬故事汇"独有的 Android AppKey, 用于配置SDK
@@ -19,16 +20,6 @@ android {
                 //标注应用推广渠道用以区分新用户来源，可填写如应用宝，豌豆荚等
                 MTA_CHANNEL:"后台"
         ]
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     signingConfigs {
@@ -40,11 +31,28 @@ android {
         }
     }
 
-    android.applicationVariants.all { variant ->
-        variant.outputs.all {
-            outputFileName = "${defaultConfig.applicationId}_${buildType.name}_V${defaultConfig.versionName}_${buildTime()}.apk"
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.defaultSignature
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+            minifyEnabled false
+            signingConfig signingConfigs.defaultSignature
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+//    android.applicationVariants.all { variant ->
+//        variant.outputs.all {
+//            outputFileName = "${defaultConfig.applicationId}_${buildType.name}_V${defaultConfig.versionName}_${buildTime()}.apk"
+//        }
+//    }
 }
 
 dependencies {
@@ -57,12 +65,13 @@ dependencies {
     compile 'com.android.support:design:26.1.0'
     compile 'com.android.support:cardview-v7:26.1.0'
     compile 'com.android.support:recyclerview-v7:26.1.0'
-    compile 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:+'
     compile 'com.google.zxing:core:3.2.1'
-    //MTA主包
     compile 'com.qq.mta:mta:3.4.2'
-    //MID基础包
     compile 'com.tencent.mid:mid:3.73-release'
+    compile 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:+'
+    compile 'com.meituan.android.walle:library:1.1.6'
+
+    implementation("com.tinkerpatch.sdk:tinkerpatch-android-sdk:${TINKERPATCH_VERSION}") { changing = true }
 
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.4'
 
@@ -72,6 +81,7 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+    implementation "com.android.support:multidex:1.0.2"
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
@@ -79,7 +89,15 @@ dependencies {
     implementation project(':swipeback')
 }
 
+walle {
+    apkOutputFolder = new File("${project.buildDir}/outputs/channels")
+    apkFileNameFormat = '${appName}-${packageName}-${channel}-${buildType}-v${versionName}-${versionCode}-${buildTime}-${flavorName}.apk'
+    //configFile与channelFile两者必须存在一个，否则无法生成渠道包。两者都存在时优先执行configFile
+    channelFile = new File("${project.getProjectDir()}/channel_debug")
+    //configFile = new File("${project.getProjectDir()}/config.json")
+}
 
 static def buildTime() {
     return new SimpleDateFormat("yyyyMMdd").format(new Date()).toString()
 }
+apply from: 'tinkerpatch.gradle'
