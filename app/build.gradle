@@ -48,11 +48,11 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-//    android.applicationVariants.all { variant ->
-//        variant.outputs.all {
-//            outputFileName = "${defaultConfig.applicationId}_${buildType.name}_V${defaultConfig.versionName}_${buildTime()}.apk"
-//        }
-//    }
+    android.applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "${defaultConfig.applicationId}_${buildType.name}_V${defaultConfig.versionName}_${buildTime()}.apk"
+        }
+    }
 }
 
 dependencies {
@@ -91,9 +91,9 @@ dependencies {
 
 walle {
     apkOutputFolder = new File("${project.buildDir}/outputs/channels")
-    apkFileNameFormat = '${appName}-${packageName}-${channel}-${buildType}-v${versionName}-${versionCode}-${buildTime}-${flavorName}.apk'
+    apkFileNameFormat = '${appName}-${packageName}-${channel}-${buildType}-v${versionName}-${versionCode}-${buildTime}.apk'
     //configFile与channelFile两者必须存在一个，否则无法生成渠道包。两者都存在时优先执行configFile
-    channelFile = new File("${project.getProjectDir()}/channel_debug")
+    channelFile = new File("${project.getProjectDir()}/channel")
     //configFile = new File("${project.getProjectDir()}/config.json")
 }
 
