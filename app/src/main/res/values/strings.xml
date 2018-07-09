@@ -71,6 +71,7 @@
     <string name="three_month_vip">3个月会员</string>
     <string name="one_month_vip">1个月会员</string>
 
+    <!-- Activity Charge-->
     <string name="rmb_100">￥278</string>
     <string name="rmb_28">￥78</string>
     <string name="rmb_9_9">￥30</string>
@@ -80,6 +81,9 @@
     <string name="alipay_pay">支付宝支付</string>
     <string name="wechat_pay">微信支付</string>
     <string name="go_pay">去支付</string>
+    <string name="vip_right">会员权益</string>
+    <string name="tip_1">1、开通会员可以为宝贝解锁全部VIP专辑和曲目</string>
+    <string name="tip_2">2、充值失败或其他问题请联系客服：010-8306896</string>
 
     <!-- Coupon Activity-->
     <string name="coupon_activity_title">兑换码</string>

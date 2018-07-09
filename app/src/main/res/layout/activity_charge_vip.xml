@@ -157,4 +157,37 @@
         android:textColor="@color/colorWhite"
         android:textSize="@dimen/sp18"
         android:background="@drawable/rectangle_rc_fbc600"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp22"
+        android:layout_marginLeft="@dimen/dp15"
+        android:orientation="horizontal">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/activity_charge_tips"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/vip_right"
+            android:textColor="@color/color333333"
+            android:textSize="@dimen/sp14"/>
+    </LinearLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp15"
+        android:layout_marginTop="@dimen/dp8"
+        android:text="@string/tip_1"
+        android:textSize="@dimen/sp12"
+        android:textColor="@color/color666666"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/dp15"
+        android:layout_marginTop="@dimen/dp8"
+        android:text="@string/tip_2"
+        android:textSize="@dimen/sp12"
+        android:textColor="@color/color666666"/>
 </LinearLayout>
