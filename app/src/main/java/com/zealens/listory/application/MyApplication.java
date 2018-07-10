@@ -82,7 +82,6 @@ public class MyApplication extends CoreApplication {
             channel = WalleChannelReader.getChannel(this.getApplicationContext());
         }
         // 基础统计API
-        Log.d(TAG, "=========="+channel);
         StatConfig.setInstallChannel(channel);
         StatService.registerActivityLifecycleCallbacks(this);
     }
