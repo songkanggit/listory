@@ -74,12 +74,15 @@ public class MyApplication extends CoreApplication {
         }
         LeakCanary.install(this);
 
-        if(BuildConfig.DEBUG) {
+        String channel = "debug";
+        if(!BuildConfig.PUBLISH_FLAG) {
             // [可选]设置是否打开debug输出，上线时请关闭，Logcat标签为"MtaSDK"
             StatConfig.setDebugEnable(true);
+        } else {
+            channel = WalleChannelReader.getChannel(this.getApplicationContext());
         }
         // 基础统计API
-        final String channel = WalleChannelReader.getChannel(this.getApplicationContext());
+        Log.d(TAG, "=========="+channel);
         StatConfig.setInstallChannel(channel);
         StatService.registerActivityLifecycleCallbacks(this);
     }
